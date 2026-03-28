@@ -51,25 +51,6 @@ export default function App() {
   const [copiedChecker, setCopiedChecker] = useState(false);
   const [expandedTutorial, setExpandedTutorial] = useState<string | null>(null);
 
-  const rscFetch = async (resource: string, config?: RequestInit) => {
-    try {
-      const url = new URL(resource, window.location.origin);
-      if (!url.searchParams.has('_rsc')) {
-        // Standard Next.js looking hash (e.g., 1r34m)
-        url.searchParams.set('_rsc', '1r34m');
-      }
-      
-      const headers = new Headers(config?.headers || {});
-      if (!headers.has('RSC')) headers.set('RSC', '1');
-      if (!headers.has('Next-Router-State-Tree')) headers.set('Next-Router-State-Tree', '[]');
-      if (!headers.has('Next-Router-Prefetch')) headers.set('Next-Router-Prefetch', '1');
-      
-      return fetch(url.toString(), { ...config, headers });
-    } catch (e) {
-      return fetch(resource, config);
-    }
-  };
-
   const toggleTutorial = (id: string) => {
     if (expandedTutorial === id) {
       setExpandedTutorial(null);
@@ -212,48 +193,6 @@ export default function App() {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    // Trigger a real RSC prefetch on tab change
-    const tabPathMap: Record<string, string> = {
-      'Dashboard': '/dashboard',
-      'Bypasser': '/dashboard',
-      'Refresher': '/refresher',
-      'Account Checker': '/account-checker',
-      'Tutorials': '/tutorials',
-      'Settings': '/view'
-    };
-    const path = tabPathMap[activeTab] || '/dashboard';
-    rscFetch(path, { priority: 'low' } as any).catch(() => {});
-  }, [activeTab]);
-
-  useEffect(() => {
-    const rscPaths = ['/login', '/tutorials', '/account-checker', '/refresher', '/dashboard', '/generator', '/view'];
-    
-    // Initial "many" RSC requests on mount to match screenshot
-    rscPaths.forEach(path => {
-      rscFetch(path, { priority: 'low' } as any).catch(() => {});
-    });
-    
-    // RSC request on every click to make it "super real"
-    const handleClick = () => {
-      const randomPath = rscPaths[Math.floor(Math.random() * rscPaths.length)];
-      rscFetch(randomPath, { priority: 'low' } as any).catch(() => {});
-    };
-    
-    window.addEventListener('click', handleClick);
-    
-    // Periodic background RSC requests to make it "super real"
-    const interval = setInterval(() => {
-      const randomPath = rscPaths[Math.floor(Math.random() * rscPaths.length)];
-      rscFetch(randomPath, { priority: 'low' } as any).catch(() => {});
-    }, 15000); // Every 15 seconds
-    
-    return () => {
-      window.removeEventListener('click', handleClick);
-      clearInterval(interval);
-    };
   }, []);
 
   return (
