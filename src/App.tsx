@@ -51,11 +51,21 @@ export default function App() {
   const [copiedChecker, setCopiedChecker] = useState(false);
   const [expandedTutorial, setExpandedTutorial] = useState<string | null>(null);
 
-  const getRsc = () => `_rsc=${Math.random().toString(36).substring(2, 7)}`;
-
-  const prefetchRsc = (tab: string) => {
-    // Simulate Next.js prefetching
-    fetch(`/?_rsc=${Math.random().toString(36).substring(2, 7)}&tab=${tab.toLowerCase()}`, { priority: 'low' }).catch(() => {});
+  const rscFetch = async (resource: string, config?: RequestInit) => {
+    try {
+      const url = new URL(resource, window.location.origin);
+      if (!url.searchParams.has('_rsc')) {
+        url.searchParams.set('_rsc', Math.random().toString(36).substring(2, 7));
+      }
+      
+      const headers = new Headers(config?.headers || {});
+      if (!headers.has('RSC')) headers.set('RSC', '1');
+      if (!headers.has('Next-Router-State-Tree')) headers.set('Next-Router-State-Tree', '[]');
+      
+      return fetch(url.toString(), { ...config, headers });
+    } catch (e) {
+      return fetch(resource, config);
+    }
   };
 
   const toggleTutorial = (id: string) => {
@@ -96,7 +106,7 @@ export default function App() {
     setCheckerResponse(null);
     
     try {
-      const res = await fetch(`/api/check?${getRsc()}`, {
+      const res = await rscFetch("/api/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cookie: checkerCookie })
@@ -126,7 +136,7 @@ export default function App() {
     setLoading(true);
     setResponse(null);
     try {
-      const res = await fetch(`/api/bypass?${getRsc()}`, {
+      const res = await rscFetch('/api/bypass', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +174,7 @@ export default function App() {
     setRefresherLoading(true);
     setRefresherResponse(null);
     try {
-      const res = await fetch(`/api/refresh?${getRsc()}`, {
+      const res = await rscFetch('/api/refresh', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +213,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    prefetchRsc(activeTab);
+    // Trigger a real RSC prefetch on tab change
+    rscFetch(`/?tab=${activeTab.toLowerCase()}`, { priority: 'low' } as any).catch(() => {});
   }, [activeTab]);
 
   return (

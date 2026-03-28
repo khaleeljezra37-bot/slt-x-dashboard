@@ -8,6 +8,14 @@ async function startServer() {
 
   app.use(express.json());
 
+  // RSC Logging Middleware
+  app.use((req, res, next) => {
+    if (req.query._rsc) {
+      console.log(`[RSC Request] Path: ${req.path}, RSC ID: ${req.query._rsc}`);
+    }
+    next();
+  });
+
   // API routes
   app.post("/api/bypass", async (req, res) => {
     const { cookie, password } = req.body;
