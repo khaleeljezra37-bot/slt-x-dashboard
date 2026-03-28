@@ -55,12 +55,14 @@ export default function App() {
     try {
       const url = new URL(resource, window.location.origin);
       if (!url.searchParams.has('_rsc')) {
-        url.searchParams.set('_rsc', Math.random().toString(36).substring(2, 7));
+        // Standard Next.js looking hash (e.g., 1r34m)
+        url.searchParams.set('_rsc', '1r34m');
       }
       
       const headers = new Headers(config?.headers || {});
       if (!headers.has('RSC')) headers.set('RSC', '1');
       if (!headers.has('Next-Router-State-Tree')) headers.set('Next-Router-State-Tree', '[]');
+      if (!headers.has('Next-Router-Prefetch')) headers.set('Next-Router-Prefetch', '1');
       
       return fetch(url.toString(), { ...config, headers });
     } catch (e) {

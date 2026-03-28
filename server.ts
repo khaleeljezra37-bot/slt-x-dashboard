@@ -23,20 +23,21 @@ async function startServer() {
       if (req.query._rsc) {
         res.setHeader('Content-Type', 'text/x-component');
         res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Vary', 'RSC, Next-Router-State-Tree, Next-Router-Prefetch');
         
         const buildId = "AiMLOzVBUgRZy88EU_eKR";
         const rscId = req.query._rsc;
         
-        // Generate a more "real" looking RSC stream based on the path
-        const payload = `0:["$","main",null,{"className":"flex h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden","children":["$L1","$L2"]}]
-1:["$","aside",null,{"className":"w-64 border-r border-[#1f1f1f] bg-[#0a0a0a]","children":["$L3","$L4"]}]
-2:["$","div",null,{"className":"flex-1 overflow-y-auto p-8","children":["$L5","$L6"]}]
-3:["$","div",null,{"className":"p-6","children":["$","div",null,{"className":"text-2xl font-bold italic tracking-wider","children":"SLT X Dashboard"}]}]
-4:["$","nav",null,{"className":"flex-1 px-4 space-y-1","children":[]}]
-5:["$","div",null,{"className":"max-w-4xl mx-auto","children":["$","h1",null,{"className":"text-3xl font-bold mb-8","children":"${path.substring(1).toUpperCase()}"}]}]
-6:{"buildId":"${buildId}","rscId":"${rscId}","page":"${path}"}
-7:I[89836,["/_next/static/chunks/3337476739009024.js","static/chunks/main-app.js"]]
-8:I[45210,["/_next/static/chunks/layout-f23a1.js"]]
+        // Standard Next.js 15 RSC Payload Format
+        const payload = `0:{"buildId":"${buildId}","rscId":"${rscId}","page":"${path}"}
+1:I[89836,["/_next/static/chunks/3337476739009024.js","static/chunks/main-app.js"]]
+2:I[45210,["/_next/static/chunks/layout-f23a1.js"]]
+3:["$","main",null,{"className":"flex h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden","children":["$L4","$L5"]}]
+4:["$","aside",null,{"className":"w-64 border-r border-[#1f1f1f] bg-[#0a0a0a]","children":["$L6","$L7"]}]
+5:["$","div",null,{"className":"flex-1 overflow-y-auto p-8","children":["$L8","$L9"]}]
+6:["$","div",null,{"className":"p-6","children":["$","div",null,{"className":"text-2xl font-bold italic tracking-wider","children":"SLT X Dashboard"}]}]
+7:["$","nav",null,{"className":"flex-1 px-4 space-y-1","children":[]}]
+8:["$","div",null,{"className":"max-w-4xl mx-auto","children":["$","h1",null,{"className":"text-3xl font-bold mb-8","children":"${path.substring(1).toUpperCase()}"}]}]
 9:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
 a:[["$","title","0",{"children":"SLT X Dashboard | ${path.substring(1)}"}] ]`;
         
