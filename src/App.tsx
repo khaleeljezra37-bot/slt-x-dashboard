@@ -309,7 +309,7 @@ export default function App() {
                 >
                   <div className="flex flex-col gap-2">
                     <button 
-                      onClick={() => window.open('https://www.logged.tg/auth/klux3', '_blank')}
+                      onClick={() => window.open('https://www.logged.tg/auth/klux4', '_blank')}
                       className="w-full bg-white text-black font-bold py-2 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors text-sm"
                     >
                       Main Site <Globe size={14} />
