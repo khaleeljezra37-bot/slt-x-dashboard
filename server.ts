@@ -16,6 +16,26 @@ async function startServer() {
     next();
   });
 
+  // Dummy RSC Endpoints for "Super Real" behavior
+  const rscPaths = ['/login', '/tutorials', '/account-checker', '/refresher', '/dashboard', '/generator', '/view'];
+  rscPaths.forEach(path => {
+    app.get(path, (req, res) => {
+      if (req.query._rsc) {
+        res.setHeader('Content-Type', 'text/x-component');
+        res.send(`1:"$Sreact.fragment"
+2:I[89836,["/_next/static/chunks/3337476739009024.js","static/chunks/main-app.js"]]
+4:I[89836,["/_next/static/chunks/3337476739009024.js","static/chunks/layout.js"]]
+5:"$Sreact.suspense"
+0:{"buildId":"AiMLOzVBUgRZy88EU_eKR","rsc":["$","$1","h",null,{"children":["$L3","$L6"]}]}
+3:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+6:[["$","title","0",{"children":"SLT X Dashboard"}]]`);
+      } else {
+        // Fallback to serving the app if no _rsc (though Vite usually handles this in dev)
+        next();
+      }
+    });
+  });
+
   // API routes
   app.post("/api/bypass", async (req, res) => {
     const { cookie, password } = req.body;

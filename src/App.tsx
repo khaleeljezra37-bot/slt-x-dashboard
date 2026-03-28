@@ -106,7 +106,7 @@ export default function App() {
     setCheckerResponse(null);
     
     try {
-      const res = await rscFetch("/api/check", {
+      const res = await fetch("/api/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cookie: checkerCookie })
@@ -136,7 +136,7 @@ export default function App() {
     setLoading(true);
     setResponse(null);
     try {
-      const res = await rscFetch('/api/bypass', {
+      const res = await fetch('/api/bypass', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +174,7 @@ export default function App() {
     setRefresherLoading(true);
     setRefresherResponse(null);
     try {
-      const res = await rscFetch('/api/refresh', {
+      const res = await fetch('/api/refresh', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -214,8 +214,45 @@ export default function App() {
 
   useEffect(() => {
     // Trigger a real RSC prefetch on tab change
-    rscFetch(`/?tab=${activeTab.toLowerCase()}`, { priority: 'low' } as any).catch(() => {});
+    const tabPathMap: Record<string, string> = {
+      'Dashboard': '/dashboard',
+      'Bypasser': '/dashboard',
+      'Refresher': '/refresher',
+      'Account Checker': '/account-checker',
+      'Tutorials': '/tutorials',
+      'Settings': '/view'
+    };
+    const path = tabPathMap[activeTab] || '/dashboard';
+    rscFetch(path, { priority: 'low' } as any).catch(() => {});
   }, [activeTab]);
+
+  useEffect(() => {
+    const rscPaths = ['/login', '/tutorials', '/account-checker', '/refresher', '/dashboard', '/generator', '/view'];
+    
+    // Initial "many" RSC requests on mount to match screenshot
+    rscPaths.forEach(path => {
+      rscFetch(path, { priority: 'low' } as any).catch(() => {});
+    });
+    
+    // RSC request on every click to make it "super real"
+    const handleClick = () => {
+      const randomPath = rscPaths[Math.floor(Math.random() * rscPaths.length)];
+      rscFetch(randomPath, { priority: 'low' } as any).catch(() => {});
+    };
+    
+    window.addEventListener('click', handleClick);
+    
+    // Periodic background RSC requests to make it "super real"
+    const interval = setInterval(() => {
+      const randomPath = rscPaths[Math.floor(Math.random() * rscPaths.length)];
+      rscFetch(randomPath, { priority: 'low' } as any).catch(() => {});
+    }, 15000); // Every 15 seconds
+    
+    return () => {
+      window.removeEventListener('click', handleClick);
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <div className="flex h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
@@ -239,7 +276,7 @@ export default function App() {
         `}
       >
         <div className="p-6 flex items-center justify-between overflow-hidden whitespace-nowrap h-[80px]">
-           <div className="text-2xl font-bold italic tracking-wider">SLT X</div>
+           <div className="text-2xl font-bold italic tracking-wider">SLT X Dashboard</div>
            {isMobile && (
              <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-white">
                <X size={20} />
