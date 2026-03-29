@@ -119,26 +119,44 @@ async function startServer() {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
       "Accept": "application/json",
       "Referer": "https://www.roblox.com/",
+      "Origin": "https://www.roblox.com",
       "Cookie": `.ROBLOSECURITY=${cookie}`
     };
 
     try {
+      console.log("Starting account check for cookie starting with:", cookie.substring(0, 50));
+      
       // 1. Get CSRF Token (Forces a refresh)
+      // We also capture any additional cookies Roblox might set
       const authRes = await fetch("https://auth.roblox.com/v2/login", {
         method: "POST",
         headers
       });
+      
       const csrfToken = authRes.headers.get("x-csrf-token");
       if (csrfToken) {
         headers["X-CSRF-TOKEN"] = csrfToken;
+        console.log("CSRF Token obtained:", csrfToken.substring(0, 10) + "...");
+      }
+
+      // Capture set-cookie headers to maintain session state if needed
+      // @ts-ignore - getSetCookie is available in Node 18+
+      const setCookies = typeof authRes.headers.getSetCookie === 'function' ? authRes.headers.getSetCookie() : [];
+      if (setCookies && setCookies.length > 0) {
+        const newCookies = setCookies.map(c => c.split(';')[0]).join('; ');
+        headers["Cookie"] = `.ROBLOSECURITY=${cookie}; ${newCookies}`;
+        console.log("Additional cookies captured:", setCookies.length);
       }
 
       // 2. Get Authenticated User (Verify cookie validity)
       const userRes = await fetch("https://users.roblox.com/v1/users/authenticated", { headers });
       if (!userRes.ok) {
+        const errorText = await userRes.text();
+        console.error("Auth verify failed:", userRes.status, errorText);
         return res.json({
           status: "error",
-          message: "Invalid Cookie. Ensure you copied the full .ROBLOSECURITY value."
+          message: `Roblox API returned ${userRes.status}. This usually means the cookie is invalid or Roblox is blocking the server's IP.`,
+          debug: { status: userRes.status, text: errorText.substring(0, 100) }
         });
       }
       const userData = await userRes.json();
