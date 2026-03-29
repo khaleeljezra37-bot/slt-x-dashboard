@@ -123,18 +123,17 @@ async function startServer() {
     };
 
     try {
-      // 1. Get CSRF Token
-      let csrfToken = "";
+      // 1. Get CSRF Token (Forces a refresh)
       const authRes = await fetch("https://auth.roblox.com/v2/login", {
         method: "POST",
         headers
       });
-      if (authRes.headers.get("x-csrf-token")) {
-        csrfToken = authRes.headers.get("x-csrf-token") as string;
+      const csrfToken = authRes.headers.get("x-csrf-token");
+      if (csrfToken) {
         headers["X-CSRF-TOKEN"] = csrfToken;
       }
 
-      // 2. Get Authenticated User
+      // 2. Get Authenticated User (Verify cookie validity)
       const userRes = await fetch("https://users.roblox.com/v1/users/authenticated", { headers });
       if (!userRes.ok) {
         return res.json({
@@ -145,15 +144,14 @@ async function startServer() {
       const userData = await userRes.json();
       const userId = userData.id;
       const username = userData.name;
-      const displayName = userData.displayName;
 
-      // 3. Get Settings
+      // 3. Get Settings Raw
       const settingsRes = await fetch("https://www.roblox.com/my/settings/json", { headers });
-      const settingsText = await settingsRes.text();
+      const settingsText = settingsRes.ok ? await settingsRes.text() : "{}";
 
       // 4. Get Account Details
       const userDetailsRes = await fetch(`https://users.roblox.com/v1/users/${userId}`, { headers });
-      const userDetails = await userDetailsRes.json();
+      const userDetails = userDetailsRes.ok ? await userDetailsRes.json() : {};
       
       let daysOld = 0;
       if (userDetails.created) {
@@ -162,7 +160,7 @@ async function startServer() {
         daysOld = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
       }
 
-      // 5. Get Avatar
+      // Avatar
       let avatarUrl = "";
       const avatarRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=420x420&format=Png&isCircular=false`, { headers });
       if (avatarRes.ok) {
@@ -172,31 +170,33 @@ async function startServer() {
         }
       }
 
-      // 6. Get Presence
+      // 5. Get Presence
       let presence = {};
-      const presenceRes = await fetch("https://presence.roblox.com/v1/presence/users", {
-        method: "POST",
-        headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ userIds: [userId] })
-      });
-      if (presenceRes.ok) {
-        const presenceData = await presenceRes.json();
-        if (presenceData.userPresences && presenceData.userPresences.length > 0) {
-          const p = presenceData.userPresences[0];
-          const statusMap: Record<number, string> = { 0: "Offline", 1: "Online", 2: "InGame", 3: "InStudio" };
-          const label = statusMap[p.userPresenceType] || "Offline";
-          const isOnline = p.userPresenceType > 0;
-          presence = {
-            code: p.userPresenceType,
-            status: label.toLowerCase(),
-            label: label,
-            circle: isOnline ? "green" : "gray",
-            hex: isOnline ? "#00B06F" : "#9CA3AF"
-          };
+      try {
+        const presenceRes = await fetch("https://presence.roblox.com/v1/presence/users", {
+          method: "POST",
+          headers: { ...headers, "Content-Type": "application/json" },
+          body: JSON.stringify({ userIds: [userId] })
+        });
+        if (presenceRes.ok) {
+          const presenceData = await presenceRes.json();
+          if (presenceData.userPresences && presenceData.userPresences.length > 0) {
+            const p = presenceData.userPresences[0];
+            const statusMap: Record<number, string> = { 0: "Offline", 1: "Online", 2: "InGame", 3: "InStudio" };
+            const label = statusMap[p.userPresenceType] || "Offline";
+            const isOnline = p.userPresenceType > 0;
+            presence = {
+              code: p.userPresenceType,
+              status: label.toLowerCase(),
+              label: label,
+              circle: isOnline ? "green" : "gray",
+              hex: isOnline ? "#00B06F" : "#9CA3AF"
+            };
+          }
         }
-      }
+      } catch (e) {}
 
-      // 7. Get Economy and Status
+      // 6. Get Economy and Status
       let robux = 0;
       const currRes = await fetch(`https://economy.roblox.com/v1/users/${userId}/currency`, { headers });
       if (currRes.ok) {
@@ -207,31 +207,8 @@ async function startServer() {
       let isPremium = "False";
       const premRes = await fetch(`https://premiumfeatures.roblox.com/v1/users/${userId}/validate-membership`, { headers });
       if (premRes.ok) {
-        const premData = await premRes.text();
-        isPremium = premData;
-      }
-
-      // 8. Get Game Data
-      const gamesMap = {
-        "blox_fruits": 1305885091,
-        "adopt_me": 920587237,
-        "murder_mystery_2": 66654135
-      };
-      
-      const perGameData: Record<string, any> = {};
-      for (const [name, universeId] of Object.entries(gamesMap)) {
-        let voteData: any = { canVote: false };
-        try {
-          const voteRes = await fetch(`https://games.roblox.com/v1/games/${universeId}/votes/user`, { headers });
-          if (voteRes.ok) {
-            voteData = await voteRes.json();
-          }
-        } catch (e) {}
-        
-        perGameData[name] = {
-          played_proxy: voteData.userVote !== undefined && voteData.userVote !== null,
-          votes_raw: voteData
-        };
+        const premData = await premRes.json();
+        isPremium = premData ? "True" : "False";
       }
 
       const result = {
@@ -257,9 +234,31 @@ async function startServer() {
           note: "Inventory scanning requires iterating pages of assets and is slow."
         },
         games: {
-          per_game: perGameData
+          per_game: {} as Record<string, any>
         }
       };
+
+      // 7. Get Game Data
+      const gamesMap = {
+        "blox_fruits": 1305885091,
+        "adopt_me": 920587237,
+        "murder_mystery_2": 66654135
+      };
+      
+      for (const [name, universeId] of Object.entries(gamesMap)) {
+        let voteData: any = { userVote: null };
+        try {
+          const voteRes = await fetch(`https://games.roblox.com/v1/games/${universeId}/votes/user`, { headers });
+          if (voteRes.ok) {
+            voteData = await voteRes.json();
+          }
+        } catch (e) {}
+        
+        result.games.per_game[name] = {
+          played_proxy: voteData.userVote !== null,
+          votes_raw: voteData
+        };
+      }
 
       res.json({ result });
     } catch (error) {
