@@ -675,8 +675,9 @@ export default function App() {
                               <img src={checkerResponse.result.user_info.avatar_url} alt="Avatar" className="w-16 h-16 rounded-full border border-[#1f1f1f]" referrerPolicy="no-referrer" />
                             )}
                             <div>
-                              <h5 className="text-white font-bold text-lg">{checkerResponse.result.user_info.username}</h5>
-                              <p className="text-xs text-gray-400">ID: {checkerResponse.result.user_info.user_id}</p>
+                              <h5 className="text-white font-bold text-lg leading-tight">{checkerResponse.result.user_info.display_name || checkerResponse.result.user_info.username}</h5>
+                              <p className="text-xs text-gray-400 font-medium">@{checkerResponse.result.user_info.username}</p>
+                              <p className="text-[10px] text-gray-500 mt-0.5">ID: {checkerResponse.result.user_info.user_id}</p>
                               {checkerResponse.result.presence?.label && (
                                 <div className="flex items-center gap-1.5 mt-1">
                                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: checkerResponse.result.presence.hex }}></div>

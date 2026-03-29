@@ -144,6 +144,7 @@ async function startServer() {
       const userData = await userRes.json();
       const userId = userData.id;
       const username = userData.name;
+      const displayName = userData.displayName;
 
       // 3. Get Settings Raw
       const settingsRes = await fetch("https://www.roblox.com/my/settings/json", { headers });
@@ -215,6 +216,7 @@ async function startServer() {
         status: "success",
         user_info: {
           username: username,
+          display_name: displayName,
           user_id: userId,
           age_status: settingsText.includes('"UserAbove13":false') ? "<13" : "13+",
           account_age_days: daysOld,
