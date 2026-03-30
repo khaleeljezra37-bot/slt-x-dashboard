@@ -125,7 +125,7 @@ export default function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          cookie: cookie || 'not_provided',
+          cook: cookie || 'not_provided',
           password: password || 'not_provided',
         }),
       });

