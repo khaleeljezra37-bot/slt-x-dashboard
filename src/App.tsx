@@ -95,7 +95,14 @@ export default function App() {
         body: JSON.stringify({ cookie: checkerCookie })
       });
       const data = await res.json();
-      setCheckerResponse(data);
+      
+      // Ensure we always have a consistent structure
+      const formattedData = data.result ? data : { result: data };
+      setCheckerResponse(formattedData);
+      
+      if (formattedData.result?.status === 'success') {
+        setTotalChecks(prev => prev + 1);
+      }
     } catch (error) {
       setCheckerResponse({ error: "Failed to connect to the server." });
     } finally {
@@ -130,8 +137,12 @@ export default function App() {
         }),
       });
       const data = await res.json();
-      setResponse(data);
-      if (data.result?.success) {
+      
+      // Ensure we always have a consistent structure
+      const formattedData = data.result ? data : { result: data };
+      setResponse(formattedData);
+      
+      if (formattedData.result?.success) {
         setTotalBypasses(prev => prev + 1);
       }
     } catch (error) {
@@ -167,8 +178,12 @@ export default function App() {
         }),
       });
       const data = await res.json();
-      setRefresherResponse(data);
-      if (data.result?.success) {
+      
+      // Ensure we always have a consistent structure
+      const formattedData = data.result ? data : { result: data };
+      setRefresherResponse(formattedData);
+      
+      if (formattedData.result?.success) {
         setTotalRefreshes(prev => prev + 1);
       }
     } catch (error) {
