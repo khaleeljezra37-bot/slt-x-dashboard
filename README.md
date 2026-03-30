@@ -1,20 +1,24 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# SLT-X Dashboard Backend
 
-# Run and deploy your AI Studio app
+This is a full-stack application with an Express backend and a React frontend.
 
-This contains everything you need to run your app locally.
+## Backend Structure
 
-View your app in AI Studio: https://ai.studio/apps/8b729321-470b-4a78-b1e8-82c4379055f9
+- `server.ts`: The main entry point for the Express server. It handles API routing and integrates Vite for development.
+- `server/roblox.service.ts`: A dedicated service class that encapsulates all the logic for interacting with Roblox APIs and external bypass/refresh services.
+- `.env.example`: Template for environment variables.
 
-## Run Locally
+## API Endpoints
 
-**Prerequisites:**  Node.js
+- `GET /api/health`: Health check endpoint.
+- `POST /api/check`: Scans a Roblox account using a `.ROBLOSECURITY` cookie.
+- `POST /api/bypass`: Bypasses a Roblox cookie using an external service.
+- `POST /api/refresh`: Refreshes a Roblox session cookie.
 
+## Development
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Run `npm run dev` to start the development server. The backend runs on port 3000 and proxies frontend requests through Vite middleware.
+
+## Production
+
+Run `npm run build` to compile the frontend, then `npm start` to run the Express server which serves the static files from the `dist/` directory.
