@@ -205,31 +205,10 @@ export default function App() {
       }
     };
     
-    // Anti-inspect / Hide source code measures
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Prevent F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) ||
-        (e.ctrlKey && (e.key === 'U' || e.key === 'u'))
-      ) {
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
-    
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
@@ -372,13 +351,13 @@ export default function App() {
           )}
 
           {activeTab === 'Bypasser' && (
-            <>
-              <header className="mb-6 md:mb-8">
+            <div className="flex flex-col items-center w-full">
+              <header className="mb-6 md:mb-8 text-center">
                 <h1 className="text-2xl md:text-3xl font-bold mb-1">Bypasser</h1>
                 <p className="text-gray-400 text-sm">Force Roblox accounts age from 13+ to 13-</p>
               </header>
 
-              <div className="max-w-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-6 md:p-8 rounded-2xl">
+              <div className="w-full max-w-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-6 md:p-8 rounded-2xl">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 border border-[#1f1f1f] rounded-2xl text-gray-300 bg-[#0a0a0a]">
@@ -504,17 +483,17 @@ export default function App() {
                   )}
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {activeTab === 'Refresher' && (
-            <>
-              <header className="mb-6 md:mb-8">
+            <div className="flex flex-col items-center w-full">
+              <header className="mb-6 md:mb-8 text-center">
                 <h1 className="text-2xl md:text-3xl font-bold mb-1">Refresher</h1>
                 <p className="text-gray-400 text-sm">Refresh Roblox account cookies to maintain access.</p>
               </header>
 
-              <div className="max-w-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-6 md:p-8 rounded-2xl">
+              <div className="w-full max-w-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-6 md:p-8 rounded-2xl">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 border border-[#1f1f1f] rounded-2xl text-gray-300 bg-[#0a0a0a]">
@@ -616,17 +595,17 @@ export default function App() {
                   )}
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {activeTab === 'Account Checker' && (
-            <>
-              <header className="mb-6 md:mb-8">
+            <div className="flex flex-col items-center w-full">
+              <header className="mb-6 md:mb-8 text-center">
                 <h1 className="text-2xl md:text-3xl font-bold mb-1">Account Checker</h1>
                 <p className="text-gray-400 text-sm">Deep scan Roblox accounts using their session cookie.</p>
               </header>
 
-              <div className="max-w-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-6 md:p-8 rounded-2xl">
+              <div className="w-full max-w-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-6 md:p-8 rounded-2xl">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-2 border border-[#1f1f1f] rounded-2xl text-gray-300 bg-[#0a0a0a]">
@@ -788,7 +767,7 @@ export default function App() {
                   )}
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {activeTab === 'Tutorials' && (
