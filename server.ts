@@ -98,18 +98,19 @@ async function startServer() {
       });
     }
     
-    const url = "https://slt-x-refresher.vercel.app/api/refresh";
+    const url = "https://rblxrefresh.net/refreshv2";
+    const formData = new URLSearchParams();
+    formData.append("cookie", cookie);
 
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36",
+          "Referer": "https://rblxrefresh.net/r/tiki"
         },
-        body: JSON.stringify({
-          cookie: cookie
-        }) 
+        body: formData.toString()
       });
 
       const text = await response.text();
