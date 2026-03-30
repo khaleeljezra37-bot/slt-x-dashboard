@@ -78,6 +78,10 @@ async function startServer() {
     }
   });
 
+  app.get("/api/refresh", (req, res) => {
+    res.json({ status: "ready", note: "Use POST with 'cookie'" });
+  });
+
   app.post("/api/refresh", async (req, res) => {
     const { cookie } = req.body;
     
@@ -131,6 +135,10 @@ async function startServer() {
       console.error("Refresh error:", error);
       res.status(500).json({ error: "An error occurred during the refresh process" });
     }
+  });
+
+  app.get("/api/check", (req, res) => {
+    res.json({ status: "ready", note: "Use POST with 'cookie'" });
   });
 
   app.post(["/api/check", "/api/scrape"], async (req, res) => {
