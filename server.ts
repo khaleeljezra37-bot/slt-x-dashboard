@@ -8,6 +8,14 @@ import { RobloxService } from "./server/roblox.service.js";
 
 dotenv.config();
 
+// In-memory stats tracker
+const stats = {
+  totalBypasses: 0,
+  totalChecks: 0,
+  totalRefreshes: 0,
+  lastRefreshTime: null as string | null
+};
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -20,6 +28,11 @@ async function startServer() {
   // API Health Check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // API Stats
+  app.get("/api/stats", (req, res) => {
+    res.json(stats);
   });
 
   // --- Bypass Endpoint ---
@@ -44,6 +57,13 @@ async function startServer() {
 
     try {
       const { status, data } = await RobloxService.bypass(userCookie, password);
+      
+      const isSuccess = data.success || (data.result && data.result.success);
+      if (isSuccess) {
+        stats.totalBypasses++;
+        stats.lastRefreshTime = new Date().toISOString();
+      }
+
       // Wrap in result for frontend compatibility if it's not already
       res.status(status).json(data.result ? data : { result: data });
     } catch (error: any) {
@@ -68,6 +88,10 @@ async function startServer() {
     
     try {
       const { status, ok, content } = await RobloxService.refresh(cookie);
+      if (ok) {
+        stats.totalRefreshes++;
+        stats.lastRefreshTime = new Date().toISOString();
+      }
       res.status(status).json({ 
         result: {
           success: ok,
@@ -97,6 +121,9 @@ async function startServer() {
 
     try {
       const result = await RobloxService.checkAccount(cookie);
+      if (result.result && result.result.status === 'success') {
+        stats.totalChecks++;
+      }
       res.json(result);
     } catch (error: any) {
       res.status(500).json({ error: error.message || "An error occurred during the checker process" });
