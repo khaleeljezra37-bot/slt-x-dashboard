@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  BrowserRouter,
+  HashRouter as Router,
   Routes,
   Route,
   Link,
@@ -8,6 +8,7 @@ import {
   useLocation,
   Navigate
 } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -33,6 +34,102 @@ import {
 } from 'lucide-react';
 
 // --- Components ---
+
+function ResponseDisplay({ 
+  status, 
+  title, 
+  message, 
+  details, 
+  content, 
+  onCopyContent, 
+  copied 
+}: { 
+  status: 'success' | 'error' | 'loading' | null, 
+  title?: string, 
+  message?: string, 
+  details?: any, 
+  content?: string, 
+  onCopyContent?: () => void, 
+  copied?: boolean 
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!status) return null;
+
+  if (status === 'loading') {
+    return (
+      <div className="mt-8 p-8 border border-[#1f1f1f] bg-[#0a0a0a] rounded-3xl flex flex-col items-center justify-center gap-4 animate-pulse">
+        <Loader2 size={32} className="animate-spin text-white" />
+        <p className="text-gray-400 font-medium">Processing request...</p>
+      </div>
+    );
+  }
+
+  const isSuccess = status === 'success';
+
+  return (
+    <div className={`mt-8 overflow-hidden rounded-3xl border transition-all duration-300 ${
+      isSuccess 
+        ? 'bg-green-500/5 border-green-500/20' 
+        : 'bg-red-500/5 border-red-500/20'
+    }`}>
+      <div className="p-6 flex gap-5 items-start">
+        <div className={`shrink-0 p-3 rounded-2xl ${isSuccess ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+          {isSuccess ? <CheckCircle2 size={28} /> : <XCircle size={28} />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className={`font-bold text-xl mb-1 ${isSuccess ? 'text-green-400' : 'text-red-400'}`}>
+            {title || (isSuccess ? 'Operation Successful' : 'Operation Failed')}
+          </h4>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            {message}
+          </p>
+          
+          {content && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Result Content</label>
+                {onCopyContent && (
+                  <button 
+                    onClick={onCopyContent}
+                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors"
+                  >
+                    {copied ? <><CheckCircle2 size={12} className="text-green-500" /> Copied</> : <><Copy size={12} /> Copy Result</>}
+                  </button>
+                )}
+              </div>
+              <div className="relative group">
+                <div className="w-full bg-[#050505] border border-white/5 rounded-2xl p-4 text-xs font-mono text-gray-300 break-all max-h-40 overflow-y-auto whitespace-pre-wrap">
+                  {content}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {details && (
+            <div className="mt-4">
+              <button 
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                {isExpanded ? 'Hide Details' : 'View Technical Details'}
+              </button>
+              
+              {isExpanded && (
+                <div className="mt-3 p-4 bg-black/40 rounded-2xl border border-white/5 overflow-x-auto">
+                  <pre className="text-[10px] font-mono text-gray-500 leading-tight">
+                    {JSON.stringify(details, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Layout({ children, sidebarOpen, setSidebarOpen, isMobile }: any) {
   const location = useLocation();
@@ -463,48 +560,21 @@ function Bypasser({ setBackendStats }: any) {
             )}
           </button>
 
-          {response && (
-            <div className={`mt-6 p-5 rounded-2xl border flex gap-4 items-start transition-all duration-300 ${
-              response.result?.success 
-                ? 'bg-green-500/10 border-green-500/20 text-green-200' 
-                : 'bg-red-500/10 border-red-500/20 text-red-200'
-            }`}>
-              <div className={`shrink-0 mt-0.5 ${response.result?.success ? 'text-green-500' : 'text-red-500'}`}>
-                {response.result?.success ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-bold text-lg mb-1 text-white">
-                  {response.result?.success ? 'Bypass Successful!' : 'Bypass Failed!'}
-                </h4>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  {response.result?.message || response.message || response.error}
-                </p>
-                
-                {response.result?.success && response.result?.content && (
-                  <div className="mt-4">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Bypassed Cookie</label>
-                    <div className="relative group">
-                      <textarea 
-                        readOnly
-                        value={response.result.content}
-                        className="w-full bg-[#0a0a0a] border border-green-500/20 rounded-2xl p-3 text-xs font-mono text-green-400 h-24 resize-none focus:outline-none"
-                      />
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(response.result.content);
-                          setCopiedBypass(true);
-                          setTimeout(() => setCopiedBypass(false), 2000);
-                        }}
-                        className="absolute top-2 right-2 p-1.5 bg-green-500/20 hover:bg-green-500/40 text-green-400 rounded-2xl transition-colors flex items-center gap-1"
-                      >
-                        {copiedBypass ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <ResponseDisplay 
+            status={loading ? 'loading' : (response ? (response.result?.success ? 'success' : 'error') : null)}
+            title={response?.result?.success ? 'Bypass Successful!' : 'Bypass Failed!'}
+            message={response?.result?.message || response?.message || response?.error}
+            content={response?.result?.content}
+            details={response}
+            onCopyContent={() => {
+              if (response?.result?.content) {
+                navigator.clipboard.writeText(response.result.content);
+                setCopiedBypass(true);
+                setTimeout(() => setCopiedBypass(false), 2000);
+              }
+            }}
+            copied={copiedBypass}
+          />
         </div>
       </div>
     </div>
@@ -625,48 +695,21 @@ function Refresher({ setBackendStats }: any) {
             )}
           </button>
 
-          {refresherResponse && (
-            <div className={`mt-6 p-4 border rounded-2xl flex gap-4 ${
-              refresherResponse.result?.success 
-                ? 'bg-green-500/10 border-green-500/20 text-green-200' 
-                : 'bg-red-500/10 border-red-500/20 text-red-200'
-            }`}>
-              <div className={`shrink-0 mt-0.5 ${refresherResponse.result?.success ? 'text-green-500' : 'text-red-500'}`}>
-                {refresherResponse.result?.success ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-bold text-lg mb-1 text-white">
-                  {refresherResponse.result?.success ? 'Refresh Successful!' : 'Refresh Failed!'}
-                </h4>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  {refresherResponse.result?.message || refresherResponse.message || refresherResponse.error}
-                </p>
-                
-                {refresherResponse.result?.success && refresherResponse.result?.content && (
-                  <div className="mt-4">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">New Refreshed Cookie</label>
-                    <div className="relative group">
-                      <textarea 
-                        readOnly
-                        value={refresherResponse.result.content}
-                        className="w-full bg-[#0a0a0a] border border-green-500/20 rounded-2xl p-3 text-xs font-mono text-green-400 h-24 resize-none focus:outline-none"
-                      />
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(refresherResponse.result.content);
-                          setCopiedRefresh(true);
-                          setTimeout(() => setCopiedRefresh(false), 2000);
-                        }}
-                        className="absolute top-2 right-2 p-1.5 bg-green-500/20 hover:bg-green-500/40 text-green-400 rounded-2xl transition-colors flex items-center gap-1"
-                      >
-                        {copiedRefresh ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <ResponseDisplay 
+            status={refresherLoading ? 'loading' : (refresherResponse ? (refresherResponse.result?.success ? 'success' : 'error') : null)}
+            title={refresherResponse?.result?.success ? 'Refresh Successful!' : 'Refresh Failed!'}
+            message={refresherResponse?.result?.message || refresherResponse?.message || refresherResponse?.error}
+            content={refresherResponse?.result?.content}
+            details={refresherResponse}
+            onCopyContent={() => {
+              if (refresherResponse?.result?.content) {
+                navigator.clipboard.writeText(refresherResponse.result.content);
+                setCopiedRefresh(true);
+                setTimeout(() => setCopiedRefresh(false), 2000);
+              }
+            }}
+            copied={copiedRefresh}
+          />
         </div>
       </div>
     </div>
@@ -784,62 +827,73 @@ function AccountChecker({ setBackendStats }: any) {
             )}
           </button>
 
-          {checkerResponse && (
-            <div className={`mt-6 p-4 border rounded-2xl ${
-              checkerResponse.result?.status === 'success'
-                ? 'bg-green-500/10 border-green-500/20 text-green-200' 
-                : 'bg-red-500/10 border-red-500/20 text-red-200'
-            }`}>
-              <div className="flex gap-4 mb-4">
-                <div className={`shrink-0 mt-0.5 ${checkerResponse.result?.status === 'success' ? 'text-green-500' : 'text-red-500'}`}>
-                  {checkerResponse.result?.status === 'success' ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-lg mb-1 text-white">
-                    {checkerResponse.result?.status === 'success' ? 'Scan Successful!' : 'Scan Failed!'}
-                  </h4>
-                  <p className="text-sm text-gray-400 leading-relaxed">
-                    {checkerResponse.result?.message || checkerResponse.message || (checkerResponse.error ? checkerResponse.error : (checkerResponse.result?.status === 'success' ? 'Account details retrieved successfully.' : 'An unknown error occurred.'))}
-                  </p>
+          <ResponseDisplay 
+            status={checkerLoading ? 'loading' : (checkerResponse ? (checkerResponse.result?.status === 'success' ? 'success' : 'error') : null)}
+            title={checkerResponse?.result?.status === 'success' ? 'Scan Successful!' : 'Scan Failed!'}
+            message={checkerResponse?.result?.message || checkerResponse?.message || checkerResponse?.error}
+            details={checkerResponse}
+          />
+
+          {checkerResponse?.result?.status === 'success' && checkerResponse.result.user_info && (
+            <div className="mt-8 space-y-6">
+              <div className="flex items-center gap-6 p-6 bg-[#141414] border border-[#1f1f1f] rounded-3xl">
+                <img 
+                  src={checkerResponse.result.user_info.avatar_url || "https://picsum.photos/seed/roblox/150/150"} 
+                  alt="Avatar" 
+                  className="w-24 h-24 rounded-2xl border border-[#1f1f1f] bg-black"
+                  referrerPolicy="no-referrer"
+                />
+                <div>
+                  <h3 className="text-2xl font-bold text-white">{checkerResponse.result.user_info.display_name}</h3>
+                  <p className="text-gray-400 font-mono text-sm">@{checkerResponse.result.user_info.username} ({checkerResponse.result.user_info.user_id})</p>
+                  <div className="flex gap-2 mt-3">
+                    <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                      {checkerResponse.result.user_info.age_status}
+                    </span>
+                    <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-bold uppercase tracking-wider text-gray-300">
+                      {checkerResponse.result.user_info.account_age_days} Days Old
+                    </span>
+                  </div>
                 </div>
               </div>
-              
-              {checkerResponse.result?.status === 'success' && checkerResponse.result.user_info && (
-                <div className="mt-4 bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
-                  <div className="p-4 border-b border-[#1f1f1f] flex items-center gap-4">
-                    {checkerResponse.result.user_info.avatar_url && (
-                      <img src={checkerResponse.result.user_info.avatar_url} alt="Avatar" className="w-16 h-16 rounded-full border border-[#1f1f1f]" referrerPolicy="no-referrer" />
-                    )}
-                    <div>
-                      <h5 className="text-white font-bold text-lg leading-tight">{checkerResponse.result.user_info.display_name || checkerResponse.result.user_info.username}</h5>
-                      <p className="text-xs text-gray-400 font-medium">@{checkerResponse.result.user_info.username}</p>
-                      <p className="text-[10px] text-gray-500 mt-0.5">ID: {checkerResponse.result.user_info.user_id}</p>
-                    </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-5 bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-4">Account Status</h4>
+                  <div className="space-y-3">
+                    <StatusRow label="Robux" value={checkerResponse.result.account_status.robux_balance} icon={<Activity size={14} className="text-green-500" />} />
+                    <StatusRow label="Premium" value={checkerResponse.result.account_status.premium} icon={<ShieldCheck size={14} className="text-blue-500" />} />
+                    <StatusRow label="Email Verified" value={checkerResponse.result.account_status.email_verified} icon={<CheckCircle2 size={14} className="text-yellow-500" />} />
+                    <StatusRow label="2FA Enabled" value={checkerResponse.result.account_status.two_factor_auth} icon={<Lock size={14} className="text-purple-500" />} />
                   </div>
-                  <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                </div>
+                <div className="p-5 bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-4">Presence</h4>
+                  <div className="flex items-center gap-3 p-3 bg-black/40 rounded-2xl border border-white/5">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: checkerResponse.result.presence.hex || '#9CA3AF' }}></div>
                     <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-1">Robux</p>
-                      <p className="text-white font-mono">{checkerResponse.result.account_status?.robux_balance || 0}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-1">Account Age</p>
-                      <p className="text-white font-mono">{checkerResponse.result.user_info.account_age_days} days</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-1">Premium</p>
-                      <p className="text-white font-mono">{checkerResponse.result.account_status?.premium}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mb-1">Email Verified</p>
-                      <p className="text-white font-mono">{checkerResponse.result.account_status?.email_verified}</p>
+                      <p className="text-sm font-bold text-white uppercase tracking-wider">{checkerResponse.result.presence.label || 'Offline'}</p>
+                      <p className="text-[10px] text-gray-500">Last seen activity status</p>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function StatusRow({ label, value, icon }: { label: string, value: any, icon: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between py-1 border-b border-white/5 last:border-0">
+      <div className="flex items-center gap-2 text-gray-400 text-sm">
+        {icon}
+        <span>{label}</span>
+      </div>
+      <span className="text-white font-bold text-sm">{value.toString()}</span>
     </div>
   );
 }
@@ -906,6 +960,38 @@ function Tutorials() {
   );
 }
 
+function AppContent({ sidebarOpen, setSidebarOpen, isMobile, backendStats, setBackendStats }: any) {
+  const location = useLocation();
+
+  return (
+    <Layout 
+      sidebarOpen={sidebarOpen} 
+      setSidebarOpen={setSidebarOpen} 
+      isMobile={isMobile} 
+    >
+      <AnimatePresence mode="wait">
+        <Routes>
+          <Route path="/" element={<PageWrapper><Dashboard backendStats={backendStats} /></PageWrapper>} />
+          <Route path="/bypass" element={<PageWrapper><Bypasser setBackendStats={setBackendStats} /></PageWrapper>} />
+          <Route path="/refresh" element={<PageWrapper><Refresher setBackendStats={setBackendStats} /></PageWrapper>} />
+          <Route path="/checker" element={<PageWrapper><AccountChecker setBackendStats={setBackendStats} /></PageWrapper>} />
+          <Route path="/tutorials" element={<PageWrapper><Tutorials /></PageWrapper>} />
+          <Route path="/admin" element={
+            <PageWrapper>
+              <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+                <Lock size={48} className="text-gray-600 mb-4" />
+                <p className="text-lg font-medium mb-2">Admin Panel Module</p>
+                <p className="text-sm">This section is currently under development.</p>
+              </div>
+            </PageWrapper>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AnimatePresence>
+    </Layout>
+  );
+}
+
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -953,27 +1039,27 @@ export default function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <Layout 
+    <Router>
+      <AppContent 
         sidebarOpen={sidebarOpen} 
         setSidebarOpen={setSidebarOpen} 
         isMobile={isMobile} 
-      >
-        <Routes>
-          <Route path="/" element={<Dashboard backendStats={backendStats} />} />
-          <Route path="/bypass" element={<Bypasser setBackendStats={setBackendStats} />} />
-          <Route path="/refresh" element={<Refresher setBackendStats={setBackendStats} />} />
-          <Route path="/checker" element={<AccountChecker setBackendStats={setBackendStats} />} />
-          <Route path="/tutorials" element={<Tutorials />} />
-          <Route path="/admin" element={
-            <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-              <p className="text-lg font-medium mb-2">Admin Panel Module</p>
-              <p className="text-sm">This section is currently under development.</p>
-            </div>
-          } />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
-    </BrowserRouter>
+        backendStats={backendStats}
+        setBackendStats={setBackendStats}
+      />
+    </Router>
+  );
+}
+
+function PageWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.2 }}
+    >
+      {children}
+    </motion.div>
   );
 }
