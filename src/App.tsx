@@ -349,17 +349,17 @@ function Dashboard({ backendStats }: any) {
         <StatItem 
           icon={<Activity size={20} />} 
           label="Total Bypasses" 
-          value={backendStats.totalBypasses.toString()} 
+          value={backendStats?.totalBypasses?.toString() || "0"} 
         />
         <StatItem 
           icon={<UserSearch size={20} />} 
           label="Accounts Checked" 
-          value={backendStats.totalChecks.toString()} 
+          value={backendStats?.totalChecks?.toString() || "0"} 
         />
         <StatItem 
           icon={<RefreshCw size={20} />} 
           label="Cookies Refreshed" 
-          value={backendStats.totalRefreshes.toString()} 
+          value={backendStats?.totalRefreshes?.toString() || "0"} 
         />
       </div>
 
