@@ -32,7 +32,7 @@ export class RobloxService {
       // @ts-ignore
       const setCookies = typeof authRes.headers.getSetCookie === 'function' ? authRes.headers.getSetCookie() : [];
       if (setCookies && setCookies.length > 0) {
-        const newCookies = setCookies.map(c => c.split(';')[0]).join('; ');
+        const newCookies = setCookies.map((c: string) => c.split(';')[0]).join('; ');
         headers["Cookie"] = `.ROBLOSECURITY=${cookie}; ${newCookies}`;
       }
 

