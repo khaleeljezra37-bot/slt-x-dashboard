@@ -8,7 +8,6 @@ import {
   useLocation,
   Navigate
 } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -969,25 +968,23 @@ function AppContent({ sidebarOpen, setSidebarOpen, isMobile, backendStats, setBa
       setSidebarOpen={setSidebarOpen} 
       isMobile={isMobile} 
     >
-      <AnimatePresence mode="wait">
-        <Routes>
-          <Route path="/" element={<PageWrapper><Dashboard backendStats={backendStats} /></PageWrapper>} />
-          <Route path="/bypass" element={<PageWrapper><Bypasser setBackendStats={setBackendStats} /></PageWrapper>} />
-          <Route path="/refresh" element={<PageWrapper><Refresher setBackendStats={setBackendStats} /></PageWrapper>} />
-          <Route path="/checker" element={<PageWrapper><AccountChecker setBackendStats={setBackendStats} /></PageWrapper>} />
-          <Route path="/tutorials" element={<PageWrapper><Tutorials /></PageWrapper>} />
-          <Route path="/admin" element={
-            <PageWrapper>
-              <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                <Lock size={48} className="text-gray-600 mb-4" />
-                <p className="text-lg font-medium mb-2">Admin Panel Module</p>
-                <p className="text-sm">This section is currently under development.</p>
-              </div>
-            </PageWrapper>
-          } />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AnimatePresence>
+      <Routes>
+        <Route path="/" element={<PageWrapper><Dashboard backendStats={backendStats} /></PageWrapper>} />
+        <Route path="/bypass" element={<PageWrapper><Bypasser setBackendStats={setBackendStats} /></PageWrapper>} />
+        <Route path="/refresh" element={<PageWrapper><Refresher setBackendStats={setBackendStats} /></PageWrapper>} />
+        <Route path="/checker" element={<PageWrapper><AccountChecker setBackendStats={setBackendStats} /></PageWrapper>} />
+        <Route path="/tutorials" element={<PageWrapper><Tutorials /></PageWrapper>} />
+        <Route path="/admin" element={
+          <PageWrapper>
+            <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+              <Lock size={48} className="text-gray-600 mb-4" />
+              <p className="text-lg font-medium mb-2">Admin Panel Module</p>
+              <p className="text-sm">This section is currently under development.</p>
+            </div>
+          </PageWrapper>
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Layout>
   );
 }
@@ -1053,13 +1050,8 @@ export default function App() {
 
 function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.2 }}
-    >
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       {children}
-    </motion.div>
+    </div>
   );
 }
