@@ -10,11 +10,6 @@
       "use": "@vercel/static-build"
     }
   ],
-  "functions": {
-    "server.ts": {
-      "maxDuration": 60
-    }
-  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/server.ts" },
     { "source": "/(.*)", "destination": "/index.html" }
