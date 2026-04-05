@@ -183,7 +183,7 @@ export class RobloxService {
     };
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 75000); // 75s timeout as requested
+    const timeoutId = setTimeout(() => controller.abort(), 59000); // 59s timeout to beat Vercel's 60s limit
 
     try {
       const response = await fetch(url, {
@@ -222,7 +222,7 @@ export class RobloxService {
     formData.append("cookie", cookie);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 75000);
+    const timeoutId = setTimeout(() => controller.abort(), 59000);
 
     try {
       const response = await fetch(url, {
