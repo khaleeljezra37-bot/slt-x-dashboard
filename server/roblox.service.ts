@@ -182,24 +182,37 @@ export class RobloxService {
       directoryName: process.env.BYPASS_DIRECTORY_NAME || "tiki"
     };
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 75000); // 75s timeout as requested
 
-    const text = await response.text();
     try {
-      return { status: response.status, data: JSON.parse(text) };
-    } catch (e) {
-      return { 
-        status: response.status, 
-        data: { 
-          success: response.ok,
-          message: response.ok ? "Success" : "Failed",
-          content: text 
-        } 
-      };
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      const text = await response.text();
+      try {
+        return { status: response.status, data: JSON.parse(text) };
+      } catch (e) {
+        return { 
+          status: response.status, 
+          data: { 
+            success: response.ok,
+            message: response.ok ? "Success" : "Failed",
+            content: text 
+          } 
+        };
+      }
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        return { status: 504, data: { success: false, message: "The bypass API took too long to respond (Timeout)." } };
+      }
+      throw error;
     }
   }
 
@@ -208,21 +221,34 @@ export class RobloxService {
     const formData = new URLSearchParams();
     formData.append("cookie", cookie);
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36",
-        "Referer": process.env.REFRESH_REFERER || "https://rblxrefresh.net/r/tiki"
-      },
-      body: formData.toString()
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 75000);
 
-    const text = await response.text();
-    return {
-      status: response.status,
-      ok: response.ok,
-      content: text
-    };
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Mobile Safari/537.36",
+          "Referer": process.env.REFRESH_REFERER || "https://rblxrefresh.net/r/tiki"
+        },
+        body: formData.toString(),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      const text = await response.text();
+      return {
+        status: response.status,
+        ok: response.ok,
+        content: text
+      };
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        return { status: 504, ok: false, content: "The refresh API took too long to respond (Timeout)." };
+      }
+      throw error;
+    }
   }
 }
