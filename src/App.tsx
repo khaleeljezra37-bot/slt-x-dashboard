@@ -392,7 +392,17 @@ function Bypasser({ setBackendStats }: any) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cookie, password })
       });
-      const data = await res.json();
+      
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        setStatus('error');
+        setResponse({ message: `Server Error: ${text.substring(0, 100)}` });
+        return;
+      }
+
       if (res.ok) {
         setStatus('success');
         setResponse(data);
@@ -501,7 +511,17 @@ function Refresher({ setBackendStats }: any) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cookie })
       });
-      const data = await res.json();
+      
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        setStatus('error');
+        setResponse({ message: `Server Error: ${text.substring(0, 100)}` });
+        return;
+      }
+
       if (res.ok) {
         setStatus('success');
         setResponse(data);
@@ -598,7 +618,17 @@ function AccountChecker({ setBackendStats }: any) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cookie })
       });
-      const data = await res.json();
+      
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        setStatus('error');
+        setResponse({ message: `Server Error: ${text.substring(0, 100)}` });
+        return;
+      }
+
       if (res.ok) {
         setStatus('success');
         setResponse(data);
