@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export class RobloxService {
   private static ROBLOX_WARNING = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
 
@@ -183,7 +181,7 @@ export class RobloxService {
     };
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8500); // 8.5s timeout to beat Vercel's 10s limit
+    const timeoutId = setTimeout(() => controller.abort(), 7000); // 7s timeout to safely beat Vercel's 10s limit including cold starts
 
     try {
       const response = await fetch(url, {
@@ -222,7 +220,7 @@ export class RobloxService {
     formData.append("cookie", cookie);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8500);
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
 
     try {
       const response = await fetch(url, {

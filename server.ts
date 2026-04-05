@@ -1,5 +1,4 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import path from "path";
 import morgan from "morgan";
 import cors from "cors";
@@ -133,12 +132,13 @@ async function startServer() {
   // Vite middleware for development or fallback
   const distPath = path.join(process.cwd(), 'dist');
   
-  if (process.env.VERCEL === "1") {
+  if (process.env.VERCEL) {
     console.log("Running on Vercel, skipping Vite middleware...");
   } else {
     const fs = await import('fs');
     if (process.env.NODE_ENV !== "production" || !fs.existsSync(path.join(distPath, 'index.html'))) {
       console.log("Using Vite middleware...");
+      const { createServer: createViteServer } = await import("vite");
       const vite = await createViteServer({
         server: { middlewareMode: true },
         appType: "spa",
@@ -153,7 +153,7 @@ async function startServer() {
     }
   }
 
-  if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+  if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
