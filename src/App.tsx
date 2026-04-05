@@ -19,17 +19,22 @@ import {
   Activity,
   Globe,
   Link as LinkIcon,
-  ChevronRight,
   X,
   Menu,
   CheckCircle2,
   XCircle,
-  Eye,
-  EyeOff,
   Copy,
   ChevronDown,
   ChevronUp,
-  Loader2
+  Loader2,
+  Search,
+  User,
+  ArrowLeft,
+  Zap,
+  AlertTriangle,
+  EyeOff,
+  Database,
+  Key
 } from 'lucide-react';
 
 // --- Components ---
@@ -38,7 +43,6 @@ function ResponseDisplay({
   status, 
   title, 
   message, 
-  details, 
   content, 
   onCopyContent, 
   copied 
@@ -46,20 +50,27 @@ function ResponseDisplay({
   status: 'success' | 'error' | 'loading' | null, 
   title?: string, 
   message?: string, 
-  details?: any, 
   content?: string, 
   onCopyContent?: () => void, 
   copied?: boolean 
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  if (!status) return null;
+  if (!status) {
+    return (
+      <div className="mt-6 p-8 rounded-3xl border border-[#1f1f1f] bg-[#0a0a0a] flex flex-col items-center justify-center gap-3 text-center">
+        <div className="w-12 h-12 bg-[#141414] rounded-2xl flex items-center justify-center text-gray-500 mb-2">
+          <Activity size={24} />
+        </div>
+        <h4 className="font-black italic tracking-wide text-lg uppercase text-gray-400">Ready to Execute</h4>
+        <p className="text-gray-500 text-sm font-medium">Fill in the details above and start the session.</p>
+      </div>
+    );
+  }
 
   if (status === 'loading') {
     return (
-      <div className="mt-8 p-8 border border-[#1f1f1f] bg-[#0a0a0a] rounded-3xl flex flex-col items-center justify-center gap-4 animate-pulse">
-        <Loader2 size={32} className="animate-spin text-white" />
-        <p className="text-gray-400 font-medium">Processing request...</p>
+      <div className="mt-6 p-8 rounded-3xl border border-[#1f1f1f] bg-[#0a0a0a] flex flex-col items-center justify-center gap-3">
+        <Loader2 size={28} className="animate-spin text-white" />
+        <p className="text-gray-400 text-sm font-medium">Processing your request...</p>
       </div>
     );
   }
@@ -67,264 +78,193 @@ function ResponseDisplay({
   const isSuccess = status === 'success';
 
   return (
-    <div className={`mt-8 overflow-hidden rounded-3xl border transition-all duration-300 ${
+    <div className={`mt-6 p-6 rounded-3xl border ${
       isSuccess 
         ? 'bg-green-500/5 border-green-500/20' 
         : 'bg-red-500/5 border-red-500/20'
     }`}>
-      <div className="p-6 flex gap-5 items-start">
-        <div className={`shrink-0 p-3 rounded-2xl ${isSuccess ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-          {isSuccess ? <CheckCircle2 size={28} /> : <XCircle size={28} />}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h4 className={`font-bold text-xl mb-1 ${isSuccess ? 'text-green-400' : 'text-red-400'}`}>
-            {title || (isSuccess ? 'Operation Successful' : 'Operation Failed')}
-          </h4>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            {message}
-          </p>
-          
-          {content && (
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Result Content</label>
-                {onCopyContent && (
-                  <button 
-                    onClick={onCopyContent}
-                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors"
-                  >
-                    {copied ? <><CheckCircle2 size={12} className="text-green-500" /> Copied</> : <><Copy size={12} /> Copy Result</>}
-                  </button>
-                )}
-              </div>
-              <div className="relative group">
-                <div className="w-full bg-[#050505] border border-white/5 rounded-2xl p-4 text-xs font-mono text-gray-300 break-all max-h-40 overflow-y-auto whitespace-pre-wrap">
-                  {content}
-                </div>
-              </div>
-            </div>
+      <div className="flex items-center gap-3 mb-2">
+        {isSuccess ? <CheckCircle2 className="text-green-500" size={24} /> : <XCircle className="text-red-500" size={24} />}
+        <h4 className={`font-black italic tracking-wide text-lg uppercase ${isSuccess ? 'text-green-400' : 'text-red-400'}`}>
+          {title || (isSuccess ? 'Operation Successful' : 'Operation Failed')}
+        </h4>
+      </div>
+      
+      <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+        {message}
+      </p>
+      
+      {content && (
+        <div className="relative mt-4">
+          <div className="bg-[#050505] border border-[#1f1f1f] rounded-2xl p-4 text-xs font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap max-h-64">
+            {content}
+          </div>
+          {onCopyContent && (
+            <button 
+              onClick={onCopyContent}
+              className="absolute top-3 right-3 p-2 bg-[#141414] hover:bg-[#1f1f1f] border border-[#1f1f1f] rounded-xl text-gray-300 transition-colors flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+            >
+              {copied ? <><CheckCircle2 size={14} className="text-green-400"/> Copied</> : <><Copy size={14} /> Copy</>}
+            </button>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
 
-          {details && (
-            <div className="mt-4">
-              <button 
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-300 transition-colors"
-              >
-                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                {isExpanded ? 'Hide Details' : 'View Technical Details'}
-              </button>
-              
-              {isExpanded && (
-                <div className="mt-3 p-4 bg-black/40 rounded-2xl border border-white/5 overflow-x-auto">
-                  <pre className="text-[10px] font-mono text-gray-500 leading-tight">
-                    {JSON.stringify(details, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+function StatItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | number }) {
+  return (
+    <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-6 flex items-center gap-5 hover:border-gray-700 transition-colors group">
+      <div className="bg-[#141414] p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+        {icon}
+      </div>
+      <div>
+        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 mb-1 uppercase">{label}</p>
+        <p className="text-2xl font-black italic tracking-wide text-white">{value}</p>
       </div>
     </div>
   );
 }
 
-function Layout({ children, sidebarOpen, setSidebarOpen, isMobile }: any) {
-  const location = useLocation();
-
-  const activeTab = () => {
-    const path = location.pathname;
-    if (path === '/') return 'Dashboard';
-    if (path === '/bypass') return 'Bypasser';
-    if (path === '/refresh') return 'Refresher';
-    if (path === '/checker') return 'Account Checker';
-    if (path === '/tutorials') return 'Tutorials';
-    if (path === '/admin') return 'Admin Panel';
-    return '';
-  };
-
+function ToolCard({ 
+  icon, 
+  title, 
+  description, 
+  onClick, 
+  children 
+}: { 
+  icon: React.ReactNode, 
+  title: string, 
+  description: string, 
+  onClick?: () => void,
+  children?: React.ReactNode
+}) {
   return (
-    <div className="flex h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
+    <div 
+      className={`bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-6 flex flex-col h-full transition-all duration-300 ${onClick ? 'cursor-pointer hover:border-gray-600 hover:-translate-y-1' : ''}`}
+      onClick={onClick}
+    >
+      <div className="bg-[#141414] w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-6">
+        {icon}
+      </div>
+      <h3 className="text-xl font-black italic tracking-wide text-white mb-3 uppercase">{title}</h3>
+      <p className="text-gray-400 text-sm leading-relaxed flex-grow mb-6">{description}</p>
       
-      {/* Mobile Overlay */}
-      {isMobile && sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 z-40 transition-opacity"
-          onClick={() => setSidebarOpen(false)}
-        />
+      {children ? children : (
+        <button className="w-full bg-white text-black font-black italic tracking-wide py-3.5 px-4 rounded-2xl hover:bg-gray-200 transition-colors text-sm uppercase mt-auto">
+          Open Session
+        </button>
       )}
-
-      {/* Sidebar */}
-      <aside 
-        className={`
-          ${isMobile 
-            ? `fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
-            : `relative z-20 flex flex-col transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-64' : 'w-0'}`
-          }
-          border-r border-[#1f1f1f] bg-[#0a0a0a]
-        `}
-      >
-        <div className="p-6 flex items-center justify-between overflow-hidden whitespace-nowrap h-[80px]">
-           <div className="text-2xl font-bold italic tracking-wider">SLT X Dashboard</div>
-           {isMobile && (
-             <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-white">
-               <X size={20} />
-             </button>
-           )}
-        </div>
-
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto overflow-x-hidden whitespace-nowrap pb-4">
-          <NavItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" active={activeTab() === 'Dashboard'} onClick={() => isMobile && setSidebarOpen(false)} />
-          <NavItem to="/bypass" icon={<ShieldCheck size={20} />} label="Bypasser" active={activeTab() === 'Bypasser'} onClick={() => isMobile && setSidebarOpen(false)} />
-          <NavItem to="/refresh" icon={<RefreshCw size={20} />} label="Refresher" active={activeTab() === 'Refresher'} onClick={() => isMobile && setSidebarOpen(false)} />
-          <NavItem to="/checker" icon={<UserSearch size={20} />} label="Account Checker" active={activeTab() === 'Account Checker'} onClick={() => isMobile && setSidebarOpen(false)} />
-          <NavItem to="/tutorials" icon={<BookOpen size={20} />} label="Tutorials" active={activeTab() === 'Tutorials'} onClick={() => isMobile && setSidebarOpen(false)} />
-
-          <div className="my-4 border-t border-[#1f1f1f]"></div>
-
-          <NavItem to="/admin" icon={<Lock size={20} />} label="Admin Panel" active={activeTab() === 'Admin Panel'} onClick={() => isMobile && setSidebarOpen(false)} />
-          <NavItem to="#" icon={<MessageSquare size={20} />} label="Discord Community" active={false} onClick={() => { window.open('https://discord.gg/qZePjjmb7k', '_blank'); if (isMobile) setSidebarOpen(false); }} />
-        </nav>
-
-        {/* Desktop Collapse button */}
-        {!isMobile && (
-          <button 
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="absolute -right-3 top-1/2 transform -translate-y-1/2 bg-[#1f1f1f] border border-[#2a2a2a] rounded-2xl p-1 text-gray-400 hover:text-white z-30"
-          >
-            {sidebarOpen ? <X size={14} /> : <Menu size={14} />}
-          </button>
-        )}
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden relative z-10 w-full">
-        
-        {/* Mobile Header */}
-        {isMobile && (
-          <div className="flex items-center justify-between p-4 border-b border-[#1f1f1f] bg-[#0a0a0a] shrink-0 h-[80px]">
-            <div className="text-xl font-bold italic tracking-wider">SLT X</div>
-            <button onClick={() => setSidebarOpen(true)} className="text-gray-400 hover:text-white p-2 -mr-2">
-              <Menu size={24} />
-            </button>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 lg:p-12">
-          {children}
-        </div>
-      </main>
     </div>
   );
 }
 
-function NavItem({ to, icon, label, active = false, onClick }: { to: string, icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void }) {
-  if (to === '#') {
-    return (
-      <button
-        onClick={onClick}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors ${
-          active ? 'bg-[#1f1f1f] text-white' : 'text-gray-400 hover:text-white hover:bg-[#141414]'
-        }`}
-      >
-        {icon}
-        <span className="font-medium text-sm">{label}</span>
-      </button>
-    );
-  }
-  
+function SidebarLink({ 
+  to, 
+  icon, 
+  label, 
+  isActive, 
+  onClick 
+}: { 
+  to: string, 
+  icon: React.ReactNode, 
+  label: string, 
+  isActive: boolean, 
+  onClick?: () => void 
+}) {
   return (
-    <Link
-      to={to}
+    <Link 
+      to={to} 
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors ${
-        active ? 'bg-[#1f1f1f] text-white' : 'text-gray-400 hover:text-white hover:bg-[#141414]'
+      className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200 group relative ${
+        isActive 
+          ? 'bg-[#141414] text-white' 
+          : 'text-gray-500 hover:bg-[#0a0a0a] hover:text-gray-300'
       }`}
     >
-      {icon}
-      <span className="font-medium text-sm">{label}</span>
+      <div className={`${isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}>
+        {icon}
+      </div>
+      <span className="font-bold text-sm tracking-wide uppercase">{label}</span>
+      {isActive && (
+        <div className="absolute right-4 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+      )}
     </Link>
   );
 }
 
-function StatItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
+function ExternalLink({ 
+  href, 
+  icon, 
+  label 
+}: { 
+  href: string, 
+  icon: React.ReactNode, 
+  label: string 
+}) {
   return (
-    <div className="p-5 md:p-6 border border-[#1f1f1f] rounded-2xl bg-[#0a0a0a] flex flex-col">
-      <div className="text-gray-400 mb-3 md:mb-4">
-        <div className="p-2 border border-[#1f1f1f] inline-block rounded-2xl bg-[#0a0a0a]">
-            {icon}
-        </div>
+    <a 
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200 text-gray-500 hover:bg-[#0a0a0a] hover:text-gray-300 group"
+    >
+      <div className="text-gray-500 group-hover:text-gray-300">
+        {icon}
       </div>
-      <div>
-        <p className="text-gray-400 text-xs md:text-sm mb-1">{label}</p>
-        <p className="text-xl md:text-2xl font-bold">{value}</p>
-      </div>
-    </div>
+      <span className="font-bold text-sm tracking-wide uppercase">{label}</span>
+    </a>
   );
 }
 
-function ToolCard({ icon, title, subtitle, description, children, onClick }: { icon: React.ReactNode, title: string, subtitle: string, description: string, children?: React.ReactNode, onClick?: () => void }) {
+function FaqItem({ question, answer }: { question: string, answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
   return (
-    <div className="border border-[#1f1f1f] bg-[#0a0a0a] p-5 md:p-6 flex flex-col h-full min-h-[220px] md:min-h-[250px] rounded-2xl">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 border border-[#1f1f1f] rounded-2xl text-gray-300 bg-[#0a0a0a]">
-            {icon}
-          </div>
-          <div>
-            <h3 className="font-bold text-base md:text-lg leading-tight">{title}</h3>
-            <p className="text-[9px] md:text-[10px] text-gray-400 tracking-wider font-semibold uppercase">{subtitle}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 bg-[#141414] px-2 py-1 rounded-2xl border border-[#1f1f1f] shrink-0 ml-2">
-          <div className="w-1.5 h-1.5 bg-white rounded-2xl"></div>
-          <span className="text-[8px] md:text-[9px] font-bold tracking-wider text-white">ONLINE</span>
-        </div>
-      </div>
-      
-      <p className="text-gray-400 text-xs md:text-sm mb-6 flex-1 leading-relaxed">
-        {description}
-      </p>
-
-      <div className="mt-auto flex flex-col gap-3">
-        {children}
-        {onClick && (
-          <button 
-            onClick={onClick}
-            className="w-full bg-white text-black font-bold py-2 md:py-2.5 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors text-sm md:text-base"
-          >
-            Launch Session <ChevronRight size={16} />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function TutorialCard({ id, icon, title, subtitle, colorClass, iconBgClass, isExpanded, onClick, children }: any) {
-  return (
-    <div className={`rounded-3xl border overflow-hidden transition-all duration-200 ${colorClass}`}>
+    <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden transition-all duration-300">
       <button 
-        onClick={onClick}
-        className="w-full flex items-center justify-between p-4 md:p-5 text-left"
+        className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="font-bold text-white text-sm uppercase tracking-wide pr-8">{question}</span>
+        <div className={`text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+          <ChevronDown size={20} />
+        </div>
+      </button>
+      <div 
+        className={`px-6 text-gray-400 text-sm leading-relaxed transition-all duration-300 ease-in-out ${
+          isOpen ? 'pb-5 max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+        }`}
+      >
+        {answer}
+      </div>
+    </div>
+  );
+}
+
+function RulesItem({ title, children, defaultExpanded = false }: { title: string, children: React.ReactNode, defaultExpanded?: boolean }) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+  return (
+    <div className={`border border-[#1f1f1f] rounded-3xl overflow-hidden transition-all duration-300 ${isExpanded ? 'bg-[#0a0a0a]' : 'bg-[#050505] hover:bg-[#0a0a0a]'}`}>
+      <button 
+        className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none"
+        onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
-          <div className={`p-3 rounded-2xl ${iconBgClass}`}>
-            {icon}
+          <div className={`p-2 rounded-xl ${isExpanded ? 'bg-[#141414] text-white' : 'bg-transparent text-gray-500'}`}>
+            <AlertTriangle size={20} />
           </div>
-          <div>
-            <h3 className="font-bold text-white text-base md:text-lg">{title}</h3>
-            <p className="text-xs md:text-sm text-gray-400 mt-0.5">{subtitle}</p>
-          </div>
+          <h3 className={`font-black italic tracking-wide text-lg uppercase ${isExpanded ? 'text-white' : 'text-gray-300'}`}>{title}</h3>
         </div>
-        <div className="text-gray-500 pr-2">
+        <div className="text-gray-500">
           {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </div>
       </button>
       
       {isExpanded && (
-        <div className="px-5 pb-5 pt-2 border-t border-white/5">
+        <div className="px-6 pb-6 pt-2 text-gray-400 text-sm leading-relaxed border-t border-[#1f1f1f] mt-2">
           {children}
         </div>
       )}
@@ -338,83 +278,83 @@ function Dashboard({ backendStats }: any) {
   const navigate = useNavigate();
   
   return (
-    <>
-      <header className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-1">Dashboard</h1>
-        <p className="text-gray-400 text-sm">SLT X Dashboard</p>
-      </header>
-
+    <div className="max-w-7xl mx-auto">
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <StatItem 
-          icon={<Activity size={20} />} 
+          icon={<Activity size={20} className="text-white" />} 
           label="Total Bypasses" 
           value={backendStats?.totalBypasses?.toString() || "0"} 
         />
         <StatItem 
-          icon={<UserSearch size={20} />} 
+          icon={<UserSearch size={20} className="text-white" />} 
           label="Accounts Checked" 
           value={backendStats?.totalChecks?.toString() || "0"} 
         />
         <StatItem 
-          icon={<RefreshCw size={20} />} 
+          icon={<RefreshCw size={20} className="text-white" />} 
           label="Cookies Refreshed" 
           value={backendStats?.totalRefreshes?.toString() || "0"} 
         />
       </div>
 
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h2 className="text-4xl font-black italic tracking-wide text-white uppercase">Sessions</h2>
+          <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 mt-2 uppercase">Technology</p>
+        </div>
+        <div className="hidden sm:flex items-center gap-2 bg-[#0a0a0a] border border-[#1f1f1f] rounded-full p-1">
+          <button className="bg-white text-black font-bold text-[10px] tracking-wider uppercase px-4 py-2 rounded-full">All Sessions</button>
+        </div>
+      </div>
+
       {/* Tools Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <ToolCard
           icon={<ShieldCheck size={24} />}
           title="Bypasser"
-          subtitle="ROBLOX BYPASSER"
-          description="a roblox bypasser Forces Roblox accounts age from 13+ to 13- which removes the email."
+          description="Forces Roblox accounts age from 13+ to 13- which removes the email verification."
           onClick={() => navigate('/bypass')}
         />
 
         <ToolCard
           icon={<RefreshCw size={24} />}
           title="Refresher"
-          subtitle="COOKIE REFRESHER"
-          description="Refresh Roblox account cookies to maintain access."
+          description="Keep your sessions alive and secure with high-end persistence."
           onClick={() => navigate('/refresh')}
         />
 
         <ToolCard
           icon={<UserSearch size={24} />}
           title="Account Checker"
-          subtitle="DEEP SCANNER"
-          description="account checker is that checks your whole inventory just using cookie"
+          description="Deep scanner that checks the inventory using a cookie."
           onClick={() => navigate('/checker')}
         />
 
         <ToolCard
           icon={<Activity size={24} />}
           title="Autohar"
-          subtitle="AUTOMATED HAR"
-          description="a autohar is a fake Roblox tools they can steal your Roblox cookie."
+          description="Automated HAR tool for testing and analysis."
           onClick={() => window.open('https://bloxtools.net/page/login/21c86853', '_blank')}
         />
 
         <ToolCard
           icon={<Globe size={24} />}
-          title="Generator"
-          subtitle="LINK GENERATOR"
-          description="creating fake links to get hits/beaming hits"
+          title="Link Generator"
+          description="Create custom links for testing and routing."
         >
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3 mt-2">
             <button 
               onClick={() => window.open('https://www.logged.tg/auth/klux4', '_blank')}
-              className="w-full bg-white text-black font-bold py-2 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors text-sm"
+              className="w-full bg-white text-black font-black italic tracking-wide py-3.5 px-4 rounded-2xl hover:bg-gray-200 transition-colors text-sm uppercase"
             >
-              Main Site <Globe size={14} />
+              Main Site
             </button>
             <button 
               onClick={() => window.open('https://app.beamse.pro/gen/esp', '_blank')}
-              className="w-full bg-[#141414] border border-[#1f1f1f] text-white font-bold py-2 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#1f1f1f] transition-colors text-sm"
+              className="w-full bg-[#141414] border border-[#1f1f1f] text-white font-black italic tracking-wide py-3.5 px-4 rounded-2xl hover:bg-[#1f1f1f] transition-colors text-sm uppercase"
             >
-              Backup Site <RefreshCw size={14} />
+              Backup Site
             </button>
           </div>
         </ToolCard>
@@ -422,12 +362,11 @@ function Dashboard({ backendStats }: any) {
         <ToolCard
           icon={<LinkIcon size={24} />}
           title="Hyperlink"
-          subtitle="EXTERNAL TOOL"
-          description="Access the advanced Hyperlink session manager for enhanced connectivity and control."
+          description="Advanced security for your sensitive links."
           onClick={() => window.open('https://silentx-hyperlink.vercel.app/', '_blank')}
         />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -437,6 +376,7 @@ function Bypasser({ setBackendStats }: any) {
   const [status, setStatus] = useState<'success' | 'error' | 'loading' | null>(null);
   const [response, setResponse] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
 
   const handleBypass = async () => {
     if (!cookie || !password) {
@@ -476,40 +416,54 @@ function Bypasser({ setBackendStats }: any) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Bypasser</h1>
-        <p className="text-gray-400 text-sm">Forces Roblox accounts age from 13+ to 13- which removes the email.</p>
+    <div className="max-w-3xl mx-auto">
+      <button 
+        onClick={() => navigate('/')}
+        className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-8 text-xs font-bold uppercase tracking-wider"
+      >
+        <ArrowLeft size={16} /> Back to Sessions
+      </button>
+
+      <header className="mb-10">
+        <h1 className="text-4xl font-black italic tracking-wide text-white uppercase flex items-center gap-4">
+          <ShieldCheck size={36} className="text-white" />
+          Bypasser
+        </h1>
+        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 mt-2 uppercase">Forces Roblox accounts age from 13+ to 13- which removes the email verification.</p>
       </header>
 
-      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-6 md:p-8">
+      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-8">
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Roblox Cookie</label>
+            <label className="block text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+              <Database size={14} /> Roblox Cookie
+            </label>
             <input 
               type="text" 
               value={cookie}
               onChange={(e) => setCookie(e.target.value)}
               placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
-              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/20 transition-colors"
+              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-all font-mono text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Password</label>
+            <label className="block text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+              <Lock size={14} /> Password
+            </label>
             <input 
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
-              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/20 transition-colors"
+              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-all font-mono text-sm"
             />
           </div>
           <button 
             onClick={handleBypass}
             disabled={status === 'loading'}
-            className="w-full bg-white text-black font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-white text-black font-black italic tracking-wide py-4 px-4 rounded-2xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4 uppercase text-sm flex items-center justify-center gap-2"
           >
-            {status === 'loading' ? 'Processing...' : 'Execute Bypass'} <ChevronRight size={18} />
+            <Zap size={18} /> Execute Session
           </button>
         </div>
       </div>
@@ -518,7 +472,6 @@ function Bypasser({ setBackendStats }: any) {
         status={status} 
         title={status === 'success' ? 'Bypass Successful' : 'Bypass Failed'}
         message={response?.message || response?.error}
-        details={response}
         content={response ? JSON.stringify(response, null, 2) : undefined}
         onCopyContent={copyContent}
         copied={copied}
@@ -532,6 +485,7 @@ function Refresher({ setBackendStats }: any) {
   const [status, setStatus] = useState<'success' | 'error' | 'loading' | null>(null);
   const [response, setResponse] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
 
   const handleRefresh = async () => {
     if (!cookie) {
@@ -571,30 +525,42 @@ function Refresher({ setBackendStats }: any) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Refresher</h1>
-        <p className="text-gray-400 text-sm">Refresh Roblox account cookies to maintain access.</p>
+    <div className="max-w-3xl mx-auto">
+      <button 
+        onClick={() => navigate('/')}
+        className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-8 text-xs font-bold uppercase tracking-wider"
+      >
+        <ArrowLeft size={16} /> Back to Sessions
+      </button>
+
+      <header className="mb-10">
+        <h1 className="text-4xl font-black italic tracking-wide text-white uppercase flex items-center gap-4">
+          <RefreshCw size={36} className="text-white" />
+          Refresher
+        </h1>
+        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 mt-2 uppercase">Keep your sessions alive and secure with high-end persistence.</p>
       </header>
 
-      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-6 md:p-8">
+      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-8">
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Roblox Cookie</label>
+            <label className="block text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+              <Database size={14} /> Roblox Cookie
+            </label>
             <input 
               type="text" 
               value={cookie}
               onChange={(e) => setCookie(e.target.value)}
               placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
-              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/20 transition-colors"
+              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-all font-mono text-sm"
             />
           </div>
           <button 
             onClick={handleRefresh}
             disabled={status === 'loading'}
-            className="w-full bg-white text-black font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-white text-black font-black italic tracking-wide py-4 px-4 rounded-2xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4 uppercase text-sm flex items-center justify-center gap-2"
           >
-            {status === 'loading' ? 'Processing...' : 'Execute Refresh'} <ChevronRight size={18} />
+            <Zap size={18} /> Execute Session
           </button>
         </div>
       </div>
@@ -603,7 +569,6 @@ function Refresher({ setBackendStats }: any) {
         status={status} 
         title={status === 'success' ? 'Refresh Successful' : 'Refresh Failed'}
         message={response?.message || response?.error || response?.result?.message}
-        details={response}
         content={response?.result?.content}
         onCopyContent={copyContent}
         copied={copied}
@@ -617,6 +582,7 @@ function AccountChecker({ setBackendStats }: any) {
   const [status, setStatus] = useState<'success' | 'error' | 'loading' | null>(null);
   const [response, setResponse] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
 
   const handleCheck = async () => {
     if (!cookie) {
@@ -656,39 +622,50 @@ function AccountChecker({ setBackendStats }: any) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Account Checker</h1>
-        <p className="text-gray-400 text-sm">Deep scanner that checks your whole inventory just using cookie.</p>
+    <div className="max-w-3xl mx-auto">
+      <button 
+        onClick={() => navigate('/')}
+        className="flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-8 text-xs font-bold uppercase tracking-wider"
+      >
+        <ArrowLeft size={16} /> Back to Sessions
+      </button>
+
+      <header className="mb-10">
+        <h1 className="text-4xl font-black italic tracking-wide text-white uppercase flex items-center gap-4">
+          <UserSearch size={36} className="text-white" />
+          Account Checker
+        </h1>
+        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 mt-2 uppercase">Deep scanner that checks the inventory using a cookie.</p>
       </header>
 
-      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-6 md:p-8">
+      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-8">
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider">Roblox Cookie</label>
+            <label className="block text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+              <Database size={14} /> Roblox Cookie
+            </label>
             <input 
               type="text" 
               value={cookie}
               onChange={(e) => setCookie(e.target.value)}
               placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
-              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-white/20 transition-colors"
+              className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-all font-mono text-sm"
             />
           </div>
           <button 
             onClick={handleCheck}
             disabled={status === 'loading'}
-            className="w-full bg-white text-black font-bold py-3 px-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-white text-black font-black italic tracking-wide py-4 px-4 rounded-2xl hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4 uppercase text-sm flex items-center justify-center gap-2"
           >
-            {status === 'loading' ? 'Processing...' : 'Execute Scan'} <ChevronRight size={18} />
+            <Zap size={18} /> Execute Session
           </button>
         </div>
       </div>
 
       <ResponseDisplay 
         status={status} 
-        title={status === 'success' ? 'Scan Complete' : 'Scan Failed'}
-        message={response?.message || response?.error || (response?.result?.status === 'error' ? response.result.message : undefined)}
-        details={response}
+        title={status === 'success' ? 'Check Successful' : 'Check Failed'}
+        message={response?.message || response?.error}
         content={response ? JSON.stringify(response, null, 2) : undefined}
         onCopyContent={copyContent}
         copied={copied}
@@ -697,161 +674,343 @@ function AccountChecker({ setBackendStats }: any) {
   );
 }
 
-function Tutorials() {
-  const [expandedTutorial, setExpandedTutorial] = useState<string | null>(null);
+function AdminPanel({ backendStats }: any) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [tokenInput, setTokenInput] = useState('');
+  const [error, setError] = useState('');
 
-  const toggleTutorial = (id: string) => {
-    if (expandedTutorial === id) {
-      setExpandedTutorial(null);
+  const ADMIN_TOKEN = "SLTX-ADM-9XQ2-F4V1-L8P0-Z7M3";
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (tokenInput === ADMIN_TOKEN) {
+      setIsAuthenticated(true);
+      setError('');
     } else {
-      setExpandedTutorial(id);
+      setError('Invalid authorization token.');
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-md mx-auto mt-20">
+        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-8">
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 bg-[#141414] border border-[#1f1f1f] rounded-2xl flex items-center justify-center">
+              <Lock size={32} className="text-white" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-black italic tracking-wide text-white uppercase text-center mb-2">Admin Access</h2>
+          <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase text-center mb-8">Restricted Area</p>
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 mb-3 uppercase tracking-wider flex items-center gap-2">
+                <Key size={14} /> Authorization Token
+              </label>
+              <input 
+                type="password" 
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="Enter secure token..."
+                className="w-full bg-[#141414] border border-[#1f1f1f] rounded-2xl px-5 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-gray-500 transition-all font-mono text-sm"
+              />
+            </div>
+            {error && <p className="text-red-500 text-xs font-bold uppercase tracking-wider">{error}</p>}
+            <button 
+              type="submit"
+              className="w-full bg-white text-black font-black italic tracking-wide py-4 px-4 rounded-2xl hover:bg-gray-200 transition-colors uppercase text-sm flex items-center justify-center gap-2"
+            >
+              <ShieldCheck size={18} /> Authenticate
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-3xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">How to use SLT X tools</h1>
-        <p className="text-gray-400 text-sm">Step-by-step guides for every tool in the suite. Click a card to expand the tutorial.</p>
+    <div className="max-w-4xl mx-auto">
+      <header className="mb-12">
+        <h1 className="text-4xl font-black italic tracking-wide text-white uppercase flex items-center gap-4">
+          <Lock size={36} className="text-white" />
+          Admin Panel
+        </h1>
+        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 mt-2 uppercase">System Administration</p>
       </header>
 
-      <div className="space-y-4">
-        <TutorialCard
-          id="bypasser"
-          icon={<ShieldCheck size={20} className="text-blue-400" />}
-          title="Bypasser Module"
-          subtitle="How to submit your Roblox cookie for bypassing"
-          colorClass="bg-[#0f172a] border-blue-900/30"
-          iconBgClass="bg-blue-900/20"
-          isExpanded={expandedTutorial === 'bypasser'}
-          onClick={() => toggleTutorial('bypasser')}
-        >
-          <p className="text-sm text-gray-300">1. Get your Roblox cookie (.ROBLOSECURITY).<br/>2. Paste it into the Bypasser input field.<br/>3. Click "Execute Bypass".</p>
-        </TutorialCard>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <StatItem 
+          icon={<Activity size={20} className="text-white" />} 
+          label="Total Bypasses" 
+          value={backendStats?.totalBypasses?.toString() || "0"} 
+        />
+        <StatItem 
+          icon={<UserSearch size={20} className="text-white" />} 
+          label="Accounts Checked" 
+          value={backendStats?.totalChecks?.toString() || "0"} 
+        />
+        <StatItem 
+          icon={<RefreshCw size={20} className="text-white" />} 
+          label="Cookies Refreshed" 
+          value={backendStats?.totalRefreshes?.toString() || "0"} 
+        />
+      </div>
 
-        <TutorialCard
-          id="refresher"
-          icon={<RefreshCw size={20} className="text-green-400" />}
-          title="Refresher Suite"
-          subtitle="How to refresh a Roblox cookie"
-          colorClass="bg-[#052e16] border-green-900/30"
-          iconBgClass="bg-green-900/20"
-          isExpanded={expandedTutorial === 'refresher'}
-          onClick={() => toggleTutorial('refresher')}
-        >
-          <p className="text-sm text-gray-300">1. Paste your valid Roblox cookie.<br/>2. Click "Execute Refresh".<br/>3. Copy the new cookie provided.</p>
-        </TutorialCard>
-
-        <TutorialCard
-          id="checker"
-          icon={<UserSearch size={20} className="text-purple-400" />}
-          title="Account Checker"
-          subtitle="How to check Roblox account details"
-          colorClass="bg-[#2e1065] border-purple-900/30"
-          iconBgClass="bg-purple-900/20"
-          isExpanded={expandedTutorial === 'checker'}
-          onClick={() => toggleTutorial('checker')}
-        >
-          <p className="text-sm text-gray-300">1. Enter the target account cookie.<br/>2. Click "Execute Scan".<br/>3. View the account details in the results panel.</p>
-        </TutorialCard>
+      <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl p-8">
+        <h3 className="text-xl font-black italic tracking-wide text-white mb-6 uppercase">System Status</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-[#141414] rounded-2xl border border-[#1f1f1f]">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+              <span className="font-bold text-sm text-gray-300 uppercase tracking-wider">API Services</span>
+            </div>
+            <span className="text-green-500 font-bold text-xs uppercase tracking-widest">Operational</span>
+          </div>
+          <div className="flex items-center justify-between p-4 bg-[#141414] rounded-2xl border border-[#1f1f1f]">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+              <span className="font-bold text-sm text-gray-300 uppercase tracking-wider">Database</span>
+            </div>
+            <span className="text-green-500 font-bold text-xs uppercase tracking-widest">Operational</span>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function AppContent({ sidebarOpen, setSidebarOpen, isMobile, backendStats, setBackendStats }: any) {
+function Rules() {
+  return (
+    <div className="max-w-4xl mx-auto">
+      <header className="mb-12">
+        <h1 className="text-4xl font-black italic tracking-wide text-white uppercase">Rules & Terms</h1>
+        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 mt-2 uppercase">Important Information</p>
+      </header>
+
+      <div className="space-y-4">
+        <RulesItem title="1. Usage Policy" defaultExpanded={true}>
+          <p className="mb-4">By using our services, you agree to comply with all applicable laws and regulations. You are solely responsible for your actions and any consequences that may arise from using our tools.</p>
+          <ul className="list-disc pl-5 space-y-2 text-gray-400">
+            <li>Do not use these tools for malicious purposes.</li>
+            <li>Do not attempt to disrupt or compromise our infrastructure.</li>
+            <li>We reserve the right to terminate access for any user violating these terms.</li>
+          </ul>
+        </RulesItem>
+
+        <RulesItem title="2. Data Privacy">
+          <p className="mb-4">We take your privacy seriously. Our tools are designed to process data securely and efficiently.</p>
+          <ul className="list-disc pl-5 space-y-2 text-gray-400">
+            <li>We do not store your sensitive credentials (passwords, cookies) permanently.</li>
+            <li>Data processed through our APIs is handled in memory and discarded after the operation.</li>
+            <li>We may collect anonymous usage statistics to improve our services.</li>
+          </ul>
+        </RulesItem>
+
+        <RulesItem title="3. Liability Disclaimer">
+          <p className="mb-4">Our services are provided "as is" without any warranties, express or implied.</p>
+          <ul className="list-disc pl-5 space-y-2 text-gray-400">
+            <li>We are not responsible for any account bans, data loss, or damages resulting from the use of our tools.</li>
+            <li>Use these tools at your own risk.</li>
+            <li>We do not guarantee 100% uptime or success rates for our sessions.</li>
+          </ul>
+        </RulesItem>
+
+        <RulesItem title="4. Account Security">
+          <p className="mb-4">You are responsible for maintaining the security of your accounts.</p>
+          <ul className="list-disc pl-5 space-y-2 text-gray-400">
+            <li>Never share your session cookies or passwords with untrusted parties.</li>
+            <li>We recommend using our Refresher tool to maintain secure sessions.</li>
+            <li>If you suspect your account has been compromised, take immediate action to secure it.</li>
+          </ul>
+        </RulesItem>
+      </div>
+    </div>
+  );
+}
+
+function FAQ() {
+  return (
+    <div className="max-w-3xl mx-auto">
+      <header className="mb-12">
+        <h1 className="text-4xl font-black italic tracking-wide text-white uppercase">FAQ</h1>
+        <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 mt-2 uppercase">Frequently Asked Questions</p>
+      </header>
+
+      <div className="space-y-4">
+        <FaqItem 
+          question="What is the Bypasser tool?" 
+          answer="The Bypasser tool is designed to force a Roblox account's age setting from 13+ to under 13. This action effectively removes the email verification requirement on the account."
+        />
+        <FaqItem 
+          question="How does the Refresher work?" 
+          answer="The Refresher takes your current session cookie and generates a new, fresh session. This helps keep your account secure and prevents the session from expiring unexpectedly."
+        />
+        <FaqItem 
+          question="Is my data safe?" 
+          answer="Yes, we do not store your cookies or passwords. All processing is done securely and data is discarded immediately after the operation completes."
+        />
+        <FaqItem 
+          question="Why did my bypass fail?" 
+          answer="Bypass operations can fail for several reasons: invalid cookie, incorrect password, or Roblox may have updated their security measures. Ensure your inputs are correct and try again."
+        />
+        <FaqItem 
+          question="What does the Account Checker do?" 
+          answer="The Account Checker scans the inventory and details of an account using its cookie, providing you with a comprehensive overview of its assets and status."
+        />
+      </div>
+    </div>
+  );
+}
+
+// --- Main App Layout ---
+
+function AppContent() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const [backendStats, setBackendStats] = useState({
+    totalBypasses: 0,
+    totalChecks: 0,
+    totalRefreshes: 0
+  });
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data.totalBypasses === 'number') {
+          setBackendStats(data);
+        }
+      })
+      .catch(err => console.error('Failed to fetch stats:', err));
+  }, []);
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <Layout 
-      sidebarOpen={sidebarOpen} 
-      setSidebarOpen={setSidebarOpen} 
-      isMobile={isMobile} 
-    >
-      <Routes>
-        <Route path="/" element={<PageWrapper><Dashboard backendStats={backendStats} /></PageWrapper>} />
-        <Route path="/bypass" element={<PageWrapper><Bypasser setBackendStats={setBackendStats} /></PageWrapper>} />
-        <Route path="/refresh" element={<PageWrapper><Refresher setBackendStats={setBackendStats} /></PageWrapper>} />
-        <Route path="/checker" element={<PageWrapper><AccountChecker setBackendStats={setBackendStats} /></PageWrapper>} />
-        <Route path="/tutorials" element={<PageWrapper><Tutorials /></PageWrapper>} />
-        <Route path="/admin" element={
-          <PageWrapper>
-            <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-              <Lock size={48} className="text-gray-600 mb-4" />
-              <p className="text-lg font-medium mb-2">Admin Panel Module</p>
-              <p className="text-sm">This section is currently under development.</p>
+    <div className="min-h-screen bg-[#000000] text-white flex font-sans selection:bg-white selection:text-black">
+      
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm"
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`
+        fixed lg:sticky top-0 left-0 h-screen w-72 bg-[#000000] border-r border-[#1f1f1f] flex flex-col z-50
+        transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <div className="p-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
+              <ShieldCheck size={24} className="text-black" />
             </div>
-          </PageWrapper>
-        } />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Layout>
+            <h1 className="text-2xl font-black italic tracking-widest uppercase">SLTX</h1>
+          </div>
+          <button className="lg:hidden text-gray-500 hover:text-white" onClick={closeMobileMenu}>
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-8 no-scrollbar">
+          
+          <div>
+            <p className="px-5 text-[10px] font-bold tracking-[0.2em] text-gray-600 mb-3 uppercase">Menu</p>
+            <div className="space-y-1">
+              <SidebarLink to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" isActive={location.pathname === '/'} onClick={closeMobileMenu} />
+            </div>
+          </div>
+
+          <div>
+            <p className="px-5 text-[10px] font-bold tracking-[0.2em] text-gray-600 mb-3 uppercase">Sessions</p>
+            <div className="space-y-1">
+              <SidebarLink to="/bypass" icon={<ShieldCheck size={20} />} label="Bypasser" isActive={location.pathname === '/bypass'} onClick={closeMobileMenu} />
+              <SidebarLink to="/refresh" icon={<RefreshCw size={20} />} label="Refresher" isActive={location.pathname === '/refresh'} onClick={closeMobileMenu} />
+              <SidebarLink to="/checker" icon={<UserSearch size={20} />} label="Account Checker" isActive={location.pathname === '/checker'} onClick={closeMobileMenu} />
+            </div>
+          </div>
+
+          <div>
+            <p className="px-5 text-[10px] font-bold tracking-[0.2em] text-gray-600 mb-3 uppercase">Information</p>
+            <div className="space-y-1">
+              <SidebarLink to="/rules" icon={<BookOpen size={20} />} label="Rules" isActive={location.pathname === '/rules'} onClick={closeMobileMenu} />
+              <SidebarLink to="/faq" icon={<MessageSquare size={20} />} label="FAQ" isActive={location.pathname === '/faq'} onClick={closeMobileMenu} />
+            </div>
+          </div>
+
+          <div>
+            <p className="px-5 text-[10px] font-bold tracking-[0.2em] text-gray-600 mb-3 uppercase">Administration</p>
+            <div className="space-y-1">
+              <SidebarLink to="/admin" icon={<Lock size={20} />} label="Admin Panel" isActive={location.pathname === '/admin'} onClick={closeMobileMenu} />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 mt-auto">
+          <div className="bg-gradient-to-b from-[#1a0f0f] to-[#0a0a0a] border border-[#2a1515] rounded-3xl p-5 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-900 via-red-500 to-red-900 opacity-50"></div>
+            <div className="relative z-10">
+              <h4 className="font-black italic tracking-wide text-white uppercase mb-1">Official Community</h4>
+              <p className="text-xs text-gray-400 mb-4 font-medium">Join our Discord server</p>
+              <a 
+                href="https://discord.gg/qZePjjmb7k" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block w-full bg-white text-black text-center font-black italic tracking-wide py-3 rounded-xl hover:bg-gray-200 transition-colors text-sm uppercase"
+              >
+                Join Discord
+              </a>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top Header */}
+        <header className="h-20 border-b border-[#1f1f1f] bg-[#000000]/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-6 lg:px-10">
+          <div className="flex items-center gap-4">
+            <button 
+              className="lg:hidden text-gray-400 hover:text-white transition-colors"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-[#141414] border border-[#1f1f1f] rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition-colors cursor-pointer">
+              <User size={20} />
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <div className="flex-1 overflow-y-auto p-6 lg:p-10">
+          <Routes>
+            <Route path="/" element={<Dashboard backendStats={backendStats} />} />
+            <Route path="/bypass" element={<Bypasser setBackendStats={setBackendStats} />} />
+            <Route path="/refresh" element={<Refresher setBackendStats={setBackendStats} />} />
+            <Route path="/checker" element={<AccountChecker setBackendStats={setBackendStats} />} />
+            <Route path="/rules" element={<Rules />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/admin" element={<AdminPanel backendStats={backendStats} />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </main>
+    </div>
   );
 }
 
 export default function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-  const [backendStats, setBackendStats] = useState({
-    totalBypasses: 0,
-    totalChecks: 0,
-    totalRefreshes: 0,
-    lastRefreshTime: null as string | null
-  });
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await fetch('/api/stats');
-        if (res.ok) {
-          const data = await res.json();
-          setBackendStats(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch stats:", error);
-      }
-    };
-
-    fetchStats();
-    const interval = setInterval(fetchStats, 30000); // Refresh stats every 30s
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setSidebarOpen(false);
-      } else {
-        setSidebarOpen(true);
-      }
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
   return (
     <Router>
-      <AppContent 
-        sidebarOpen={sidebarOpen} 
-        setSidebarOpen={setSidebarOpen} 
-        isMobile={isMobile} 
-        backendStats={backendStats}
-        setBackendStats={setBackendStats}
-      />
+      <AppContent />
     </Router>
-  );
-}
-
-function PageWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {children}
-    </div>
   );
 }
