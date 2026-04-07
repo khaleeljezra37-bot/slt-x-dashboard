@@ -12,7 +12,7 @@
   ],
   "functions": {
     "server.ts": {
-      "maxDuration": 70
+      "maxDuration": 40
     }
   },
   "rewrites": [

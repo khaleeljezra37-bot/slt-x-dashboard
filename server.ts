@@ -40,6 +40,7 @@ async function startServer() {
   });
 
   app.post("/api/bypass", async (req, res) => {
+    const startTime = Date.now();
     const { cookie, cook, password } = req.body;
     const userCookie = cookie || cook;
 
@@ -63,8 +64,12 @@ async function startServer() {
         stats.lastRefreshTime = new Date().toISOString();
       }
 
+      const executionTimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
+      const responseData = data.result ? data : { result: data };
+      responseData.executionTimeSeconds = executionTimeSeconds;
+
       // Wrap in result for frontend compatibility if it's not already
-      res.status(status).json(data.result ? data : { result: data });
+      res.status(status).json(responseData);
     } catch (error: any) {
       res.status(500).json({ error: error.message || "Failed to execute bypass" });
     }
@@ -76,6 +81,7 @@ async function startServer() {
   });
 
   app.post("/api/refresh", async (req, res) => {
+    const startTime = Date.now();
     const { cookie } = req.body;
     
     if (!RobloxService.isValidCookie(cookie)) {
@@ -91,12 +97,16 @@ async function startServer() {
         stats.totalRefreshes++;
         stats.lastRefreshTime = new Date().toISOString();
       }
+      
+      const executionTimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
+      
       res.status(status).json({ 
         result: {
           success: ok,
           message: ok ? "Success! The request went through." : `Failed with status code: ${status}`,
           content: content
-        }
+        },
+        executionTimeSeconds
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message || "An error occurred during the refresh process" });
@@ -109,6 +119,7 @@ async function startServer() {
   });
 
   app.post(["/api/check", "/api/scrape"], async (req, res) => {
+    const startTime = Date.now();
     const { cookie } = req.body;
     
     if (!RobloxService.isValidCookie(cookie)) {
@@ -123,6 +134,10 @@ async function startServer() {
       if (result.result && result.result.status === 'success') {
         stats.totalChecks++;
       }
+      
+      const executionTimeSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
+      result.executionTimeSeconds = executionTimeSeconds;
+      
       res.json(result);
     } catch (error: any) {
       res.status(500).json({ error: error.message || "An error occurred during the checker process" });
